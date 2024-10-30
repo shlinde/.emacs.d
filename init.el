@@ -29,6 +29,24 @@
 	  (push ,name shl/missing-packages)))
      ,@config))
 
+(defmacro shl/bind-key (keymap &rest definitions)
+  "Expand key binding DEFINITIONS for the given KEYMAP.
+DEFINITIONS is a sequence of string and command pairs."
+  (declare (indent 1))
+  (unless (zerop (% (length definitions) 2))
+    (error "Uneven number of key+command pairs."))
+  (let ((keys (seq-filter #'stringp definitions))
+        (commands (seq-remove #'stringp definitions)))
+    `(when-let* (((keymapp ,keymap))
+                 (map ,keymap))
+       ,@(mapcar
+          (lambda (pair)
+            (let* ((key (car pair))
+                   (command (cdr pair)))
+              (unless (and (null key) (null command))
+                `(define-key map (kbd ,key) ,command))))
+          (cl-mapcar #'cons keys commands)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Appearance
 
@@ -233,8 +251,11 @@
 
   ;; Rebinding keys
   (with-eval-after-load 'corfu
-    (define-key corfu-map (kbd "C-y") 'corfu-insert)
-    (define-key corfu-map (kbd "RET") nil))
+    (shl/bind-key corfu-map
+      "C-y" #'corfu-insert
+      "RET" nil))
+
+  
 
   ;; Popopinfo
   (with-eval-after-load 'corfu
@@ -254,7 +275,9 @@
 
 ;; Expand Region makes for a nicer way to mark stuff
 (shl/pkg-config 'expand-region
-  (global-set-key (kbd "M-h") #'er/expand-region))
+  (shl/bind-key global-map
+    "M-h" #'er/expand-region))
+
 
 ;; Hippie Expand instead of dabbrev
 (global-set-key [remap dabbre-expand] 'hippie-expand)

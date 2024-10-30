@@ -18,3 +18,16 @@ system-configuration-options
 #+RESULTS:
 : --with-native-compilation=aot --with-x --with-tree-sitter --with-wide-int --with-xft --with-gnutls --with-mailutils --without-pop --with-cairo --with-imagemagick
 
+#+toc: headlines 8 insert TOC here, with eight headline levels
+
+
+* Anatomy of my Emacs configuration
+
+My Emacs configuration is split into several parts:
++ The standard ~early-init.el~ :: Containing startup optimizations and UI disabling.
++ The standard ~init.el~ :: Loads 
+
+* Early Initialization ~early-init.el~
+
+* Configuration Initialization ~init.el~
+
