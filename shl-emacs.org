@@ -1,0 +1,20 @@
+#+title: Emacs Configuration of Sebastian Hempel Linde
+#+author: Sebastian Hempel Linde
+#+email: sebastian@hempellinde.com
+#+langauge: en
+#+options: ':t toc:nil num:t author:t email:t
+#+startup: content indent
+#+macro: latest-export-date (eval (format-time-string "%F %T %z"))
+
+* Details of Emacs Build
+
+I build Emacs from source, to ensure that I am having access to the most recent developments.
+To build Emacs I rely on the following settings:
+
+#+begin_src emacs-lisp :exports both
+system-configuration-options
+#+end_src
+
+#+RESULTS:
+: --with-native-compilation=aot --with-x --with-tree-sitter --with-wide-int --with-xft --with-gnutls --with-mailutils --without-pop --with-cairo --with-imagemagick
+
