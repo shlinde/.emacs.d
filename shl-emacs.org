@@ -18,6 +18,21 @@ system-configuration-options
 #+RESULTS:
 : --with-native-compilation=aot --with-x --with-tree-sitter --with-wide-int --with-xft --with-gnutls --with-mailutils --without-pop --with-cairo --with-imagemagick
 
+I build Emacs in the following way:
+
+#+begin_src bash
+  cd $EMACS_GIT_DIR
+  BUILD_OPTS=$(emacs \
+                   --batch \
+                   --eval "(prin1 system-configuration-options)")
+
+  ./autogen.sh
+  echo "$BUILD_OPTS" | sed 's/^"\(.*\)"$/\1/' \
+      | xargs ./configure
+  make bootstrap
+  sudo make install
+#+end_src
+
 #+toc: headlines 8 insert TOC here, with eight headline levels
 
 
@@ -25,9 +40,73 @@ system-configuration-options
 
 My Emacs configuration is split into several parts:
 + The standard ~early-init.el~ :: Containing startup optimizations and UI disabling.
-+ The standard ~init.el~ :: Loads 
++ The standard ~init.el~ :: Currently containing most of the configuration
 
 * Early Initialization ~early-init.el~
+
+** Setup function to determine which system we are running on
+
+#+begin_src emacs-lisp :tangle "early-init.el"
+(defvar shl-is-wsl
+  (when (string-match "-[Mm]icrosoft" operating-system-release)
+    t)
+  "Is Emacs running in WSL?")
+
+(defvar shl-is-tiling-wm
+  (when (string-match "river" (getenv "DESKTOP_SESSION"))
+    t)
+  "Is Emacs running in a tiling window manager")
+#+end_src
+
+** Basic frame settings and UI disabling
+
+#+begin_src emacs-lisp :tangle "early-init.el"
+(setq frame-resize-pixelwise t
+      frame-inhibit-implied-resize t
+      ring-bell-function 'ignore
+      use-dialog-box nil
+      use-file-dialog nil
+      use-short-answers t
+      inhibit-splash-screen t
+      inhibit-startup-screen t
+      inhibit-x-resources t
+      inhibit-startup-echo-area-message user-login-name
+      inhibit-startup-buffer-menu t)
+
+;; Disable unwanted UI elements
+(dolist (mode '(tool-bar-mode scroll-bar-mode 
+			      horizontal-scroll-bar-mode menu-bar-mode))
+  (when (fboundp mode)
+    (funcall mode -1)))
+
+;; When running in a tiling wm I don't want decorations
+(unless shl-is-tiling-wm
+  (setq default-frame-alist '((undecorated . t))))
+#+end_src
+
+** Optimize startup time
+
+#+begin_src emacs-lisp :tangle "early-init.el"
+;; Increase garbage collection threshold while loading Emacs.
+(setq gc-cons-threshold most-positive-fixnum
+      gc-cons-percentage 0.5)
+
+
+;; Speed up startup time - but save the values for after Emacs
+;; is started.
+(defvar shl--file-name-handler-alist file-name-handler-alist)
+(defvar shl--vc-handled-backends vc-handled-backends)
+
+(setq file-name-handler-alist nil
+      vc-handled-backends nil)
+
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (setq gc-cons-threshold (* 1000 1000 8)
+                  gc-cons-percentage 0.1
+                  file-name-handler-alist shl--file-name-handler-alist
+                  vc-handled-backends shl--vc-handled-backends)))
+#+end_src
 
 * Configuration Initialization ~init.el~
 

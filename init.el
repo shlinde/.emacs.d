@@ -9,7 +9,8 @@
 
 (defvar shl/is-wsl
   (when (string-match "-[Mm]icrosoft" operating-system-release)
-  "Is emacs running in WSL?"))
+    t)
+  "Is emacs running in WSL?")
 
 (defvar shl/package-contents-refreshed nil)
 
@@ -263,6 +264,7 @@ DEFINITIONS is a sequence of string and command pairs."
     (add-hook 'corfu-mode-hook 'corfu-popupinfo-mode)
     (setq corfu-popupinfo-delay '(0.5 . 1.0))))
 
+
 ;; Ensure that opening parentheses are paired with closing
 (add-hook 'prog-mode-hook #'electric-pair-mode)
 (add-hook 'prog-mode-hook #'electric-indent-mode)
@@ -293,23 +295,23 @@ DEFINITIONS is a sequence of string and command pairs."
 (shl/pkg-config 'magit
   (global-set-key (kbd "C-x g") #'magit-status))
 
-(require 'treesit)
-(when (treesit-available-p)
-  (setq treesit-language-source-alist
-        '((bash "https://github.com/tree-sitter/tree-sitter-bash")
-          (python "https://github.com/tree-sitter/tree-sitter-python")
-          (markdown "https://github.com/ikatyang/tree-sitter-markdown")
-          (toml "https://github.com/tree-sitter/tree-sitter-toml")
-          (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
+;; (require 'treesit)
+;; (when (treesit-available-p)
+;;   (setq treesit-language-source-alist
+;;         '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+;;           (python "https://github.com/tree-sitter/tree-sitter-python")
+;;           (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+;;           (toml "https://github.com/tree-sitter/tree-sitter-toml")
+;;           (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
 
-  (mapc #'treesit-install-language-grammar
-        (mapcar #'car treesit-language-source-alist))
+;;   (mapc #'treesit-install-language-grammar
+;;         (mapcar #'car treesit-language-source-alist))
 
-  (setq major-mode-ramap-alist
-        '((yaml-mode . yaml-ts-mode)
-          (toml-mode . toml-ts-mode)
-          (bash-mode . bash-ts-mode)
-          (python-mode . python-ts-mode))))
+;;   (setq major-mode-ramap-alist
+;;         '((yaml-mode . yaml-ts-mode)
+;;           (toml-mode . toml-ts-mode)
+;;           (bash-mode . bash-ts-mode)
+;;           (python-mode . python-ts-mode))))
 
 ;; Function to clone a git repository from a URL into the code-reference folder
 (require 'cl-lib)
