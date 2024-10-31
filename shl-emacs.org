@@ -41,7 +41,7 @@ I build Emacs in the following way:
 #+end_src
 
 #+toc: headlines 8 insert TOC here, with eight headline levels
-
+ææææ
 
 * Anatomy of my Emacs configuration
 
@@ -116,11 +116,36 @@ My Emacs configuration is split into several parts:
 #+end_src
 
 * Configuration Initialization ~init.el~
-** TODO Core
+** Setup load path
+
+#+begin_src emacs-lisp :tangle "init.el"
+(mapc
+ (lambda (string)
+   (add-to-list 'load-path (locate-user-emacs-file string)))
+ '("shl-lisp" "shl-modules"))
+#+end_src
+
+** Load custom lisp
+
+#+begin_src emacs-lisp :tangle "init.el"
+(require 'shl-core)
+#+end_src
+
+** Load modules
+
+#+begin_src emacs-lisp :tangle "init.el"
+(require 'shl-appearance)
+(require 'shl-essentials)
+(require 'shl-completion)
+(require 'shl-development)
+(require 'shl-org)
+#+end_src
+
+* SHL Custom Lisp
 
 In this section I set up the core variables, functions and macros needed for my system.
 
-#+begin_src emacs-lisp :tangle "init.el"
+#+begin_src emacs-lisp :tangle "shl-lisp/shl-core.el" :mkdirp yes
 ;;; init.el --- Emacs Configuration of Sebastian Hempel Linde -*- lexical-binding: t -*-
 ;;; Commentary:
 ;;; Code:
@@ -203,8 +228,11 @@ DEFINITIONS is a sequence of string and command pairs."
                                          (dired project-dir))
                                      (user-error (format "%s\n%s" command output))))))
     (set-process-filter proc #'comint-output-filter)))
+
+(provide 'shl-core)
 #+end_src
 
+* Modules
 ** Appearance
 
 Here we set up the appearance of the editor.
@@ -212,7 +240,7 @@ Using Prot's ~modus-themes~ and his ~fontaine~ package for font management.
 
 *** Font
 
-#+begin_src emacs-lisp :tangle "init.el"
+#+begin_src emacs-lisp :tangle "shl-modules/shl-appearance.el" :mkdirp yes
 (shl-pkg-config 'fontaine
   (add-hook 'after-init-hook #'fontaine-mode)
   (add-hook 'after-init-hook (lambda ()
@@ -240,7 +268,7 @@ Using Prot's ~modus-themes~ and his ~fontaine~ package for font management.
 
 *** Theme
 
-#+begin_src emacs-lisp :tangle "init.el"
+#+begin_src emacs-lisp :tangle "shl-modules/shl-appearance.el" :mkdirp yes
 (shl-pkg-config 'modus-themes
   (require 'modus-themes)
 
@@ -257,7 +285,7 @@ Using Prot's ~modus-themes~ and his ~fontaine~ package for font management.
 
 *** General
 
-#+begin_src emacs-lisp :tangle "init.el"
+#+begin_src emacs-lisp :tangle "shl-modules/shl-appearance.el" :mkdirp yes
 ;; Line numbers
 (setopt display-line-numbers-width 3
         display-line-numbers-type 'relative)
@@ -278,6 +306,8 @@ Using Prot's ~modus-themes~ and his ~fontaine~ package for font management.
 ;; Modeline
 (add-hook 'after-init-hook #'display-time-mode)
 (add-hook 'after-init-hook #'display-battery-mode)
+
+(provide 'shl-appearance)
 #+end_src
 
 ** System Settings
@@ -286,7 +316,7 @@ Using Prot's ~modus-themes~ and his ~fontaine~ package for font management.
 
 I use Purcell's ~exec-path-from-shell~ to ensure that Emacs follow the system configuration for my environment variables.
 
-#+begin_src emacs-lisp :tangle "init.el"
+#+begin_src emacs-lisp :tangle "shl-modules/shl-essentials.el" :mkdirp yes
 (shl-pkg-config 'exec-path-from-shell
   (when (or (memq window-system '(mac ns x pgtk))
             (unless (memq system-type '(ms-dos windows-nt))
@@ -298,7 +328,7 @@ I use Purcell's ~exec-path-from-shell~ to ensure that Emacs follow the system co
 
 Backups and autosaves are fine - but I do not want them to clutter up my systems.
 
-#+begin_src emacs-lisp :tangle "init.el"
+#+begin_src emacs-lisp :tangle "shl-modules/shl-essentials.el" :mkdirp yes
 (let ((backup-dir "~/.cache/tmp/emacs/backups")
       (auto-saves-dir "~/.cache/tmp/emacs/auto-saves/"))
   (dolist (dir (list backup-dir auto-saves-dir))
@@ -319,7 +349,7 @@ Backups and autosaves are fine - but I do not want them to clutter up my systems
 
 ** General settings
 
-#+begin_src emacs-lisp :tangle "init.el"
+#+begin_src emacs-lisp :tangle "shl-modules/shl-essentials.el" :mkdirp yes
 ;; Turn on savehist mode
 (savehist-mode 1)
 
@@ -346,7 +376,7 @@ Backups and autosaves are fine - but I do not want them to clutter up my systems
 
 I use the ~vertico~, ~consult~, ~embark~ and ~marginalia~ stack.
 
-#+begin_src emacs-lisp :tangle "init.el"
+#+begin_src emacs-lisp :tangle "shl-modules/shl-completion.el" :mkdirp yes
 (shl-pkg-config 'vertico
   (setopt vertico-scroll-margin 0
 	  vertico-count 5
@@ -386,7 +416,7 @@ I use the ~vertico~, ~consult~, ~embark~ and ~marginalia~ stack.
 
 *** Completion
 
-#+begin_src emacs-lisp :tangle "init.el"
+#+begin_src emacs-lisp :tangle "shl-modules/shl-completion.el" :mkdirp yes
 (shl-pkg-config 'corfu
   (add-hook 'after-init-hook #'global-corfu-mode)
 
@@ -432,12 +462,14 @@ I use the ~vertico~, ~consult~, ~embark~ and ~marginalia~ stack.
     (require 'corfu-popupinfo)
     (add-hook 'corfu-mode-hook 'corfu-popupinfo-mode)
     (setq corfu-popupinfo-delay '(0.5 . 1.0))))
+
+(provide 'shl-completion)
 #+end_src
 
 
 *** General Settings
 
-#+begin_src emacs-lisp :tangle "init.el"
+#+begin_src emacs-lisp :tangle "shl-modules/shl-essentials.el" :mkdirp yes
 ;; Ensure that opening parentheses are paired with closing
 (add-hook 'prog-mode-hook #'electric-pair-mode)
 (add-hook 'prog-mode-hook #'electric-indent-mode)
@@ -456,11 +488,13 @@ I use the ~vertico~, ~consult~, ~embark~ and ~marginalia~ stack.
 
 ;; Hippie Expand instead of dabbrev
 (global-set-key [remap dabbre-expand] 'hippie-expand)
+
+(provide 'shl-essentials)
 #+end_src
 
 *** Completion Buffer
 
-#+begin_src emacs-lisp :tangle "init.el"
+#+begin_src emacs-lisp :tangle "shl-modules/shl-development.el" :mkdirp yes
 (defun shl/colorize-compilation-buffer ()
   (read-only-mode 'toggle)
   (ansi-color-apply-on-region compilation-filter-start (point))
@@ -470,14 +504,14 @@ I use the ~vertico~, ~consult~, ~embark~ and ~marginalia~ stack.
 
 *** Magit
 
-#+begin_src emacs-lisp :tangle "init.el"
+#+begin_src emacs-lisp :tangle "shl-modules/shl-development.el" :mkdirp yes
 (shl-pkg-config 'magit
   (global-set-key (kbd "C-x g") #'magit-status))
 #+end_src
 
 *** Eshell
 
-#+begin_src emacs-lisp :tangle "init.el"
+#+begin_src emacs-lisp :tangle "shl-modules/shl-development.el" :mkdirp yes
 (defun eshell-clear-buffer ()
   "Clear terminal"
   (interactive)
@@ -491,12 +525,14 @@ I use the ~vertico~, ~consult~, ~embark~ and ~marginalia~ stack.
 
 (shl-pkg-config 'esh-autosuggest
   (add-hook 'eshell-mode-hook #'esh-autosuggest-mode))
+
+(provide 'shl-development)
 #+end_src
 
 
 ** Org Mode
 
-#+begin_src emacs-lisp :tangle "init.el"
+#+begin_src emacs-lisp :tangle "shl-modules/shl-org.el" :mkdirp yes
 (global-set-key (kbd "C-c l") #'org-store-link)
 (global-set-key (kbd "C-c a") #'org-agenda)
 (global-set-key (kbd "C-c c") #'org-capture)
@@ -509,4 +545,6 @@ I use the ~vertico~, ~consult~, ~embark~ and ~marginalia~ stack.
 (setq org-src-preserve-indentation t)
 (setq org-src-tab-acts-natively t)
 (setq org-edit-src-content-indentation 0)
+
+(provide 'shl-org)
 #+end_src
