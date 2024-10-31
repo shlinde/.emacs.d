@@ -163,7 +163,7 @@ Should only be done once when starting Emacs."
   "Packages not able to install")
 
 (defmacro shl-pkg-config (name &rest config)
-  "Install NAME package and evaluate the CONFIG if
+  "Install NAME Package and evaluate the CONFIG if
 package install is successful."
   (declare (indent 1))
   `(if (not (package-installed-p ,name))
@@ -241,37 +241,41 @@ Using Prot's ~modus-themes~ and his ~fontaine~ package for font management.
 *** Font
 
 #+begin_src emacs-lisp :tangle "shl-modules/shl-appearance.el" :mkdirp yes
-(shl-pkg-config 'fontaine
-  (add-hook 'after-init-hook #'fontaine-mode)
-  (add-hook 'after-init-hook (lambda ()
-			      (fontaine-set-preset 'regular-dark)))
-   (setopt x-underline-at-descent-line nil)
-   (setq fontaine-presets
-         '((small
-            :default-family "Iosevka Comfy Motion"
-            :default-height 80
-            :variable-pitch-family "Iosevka Comfy Duo")
-           (regular-dark
-            :default-family "Iosevka Comfy"
-            :variable-pitch-family "Iosevka Comfy Duo"
-            :default-weight medium) ; like this it uses all the fallback values and is named `regular'
-           (regular-light 
-            :default-weight semilight) ; like this it uses all the fallback values and is named `regular'
-           (medium-light
-            :default-weight semilight
-            :default-height 115)
-           (medium-dark
-            :default-weight medium
-            :default-height 115
-            :bold-weight extrabold))))
+(use-package fontaine
+  :ensure t
+  :hook ((after-init . fontaine-mode)
+         (after-init . (lambda ()
+			 (fontaine-set-preset 'regular-dark))))
+  :config
+  (setopt x-underline-at-descent-line nil)
+  (setq fontaine-presets
+        '((small
+           :default-family "Iosevka Comfy Motion"
+           :default-height 80
+           :variable-pitch-family "Iosevka Comfy Duo")
+          (regular-dark
+           :default-family "Iosevka Comfy"
+           :variable-pitch-family "Iosevka Comfy Duo"
+           :default-weight medium) ; like this it uses all the fallback values and is named `regular'
+          (regular-light 
+           :default-weight semilight) ; like this it uses all the fallback values and is named `regular'
+          (medium-light
+           :default-weight semilight
+           :default-height 115)
+          (medium-dark
+           :default-weight medium
+           :default-height 115
+           :bold-weight extrabold))))
 #+end_src
 
 *** Theme
 
 #+begin_src emacs-lisp :tangle "shl-modules/shl-appearance.el" :mkdirp yes
-(shl-pkg-config 'modus-themes
-  (require 'modus-themes)
-
+(use-package modus-themes
+  :ensure t
+  :demand t
+  :bind (("<f5>" . modus-themes-toggle))
+  :config
   (setopt modus-themes-custom-auto-relload nil
 	  modus-themes-to-toggle '(modus-vivendi modus-operandi)
 	  modus-themes-mixed-fonts t
@@ -287,25 +291,49 @@ Using Prot's ~modus-themes~ and his ~fontaine~ package for font management.
 
 #+begin_src emacs-lisp :tangle "shl-modules/shl-appearance.el" :mkdirp yes
 ;; Line numbers
-(setopt display-line-numbers-width 3
-        display-line-numbers-type 'relative)
-(add-hook 'org-mode-hook #'display-line-numbers-mode)
-(add-hook 'prog-mode-hook #'display-line-numbers-mode)
+(use-package display-line-numbers
+  :ensure nil
+  :hook ((org-mode . display-line-numbers-mode)
+         (prog-mode . display-line-numbers-mode))
+  :config
+  (setopt display-line-numbers-width 3
+          display-line-numbers-type 'relative))
+
 
 ;; Display fill-column
-(when (boundp 'display-fill-column-indicator)
+(use-package display-fill-column-indicator
+  :ensure nil
+  :if (boundp 'display-fill-column-indicator)
+  :hook ((prog-mode . display-fill-column-indicator-mode))
+  :config
   (setq-default indicate-buffer-boundaries 'left
 		fill-column 100
-                display-fill-column-indicator-character ?┊)
-  (add-hook 'prog-mode-hook #'display-fill-column-indicator-mode))
+                display-fill-column-indicator-character ?┊))
+
 
 ;; Speed up font rendering for special characters
 ;; @see https://www.reddit.com/r/emacs/comments/988paa/emacs_on_windows_seems_lagging/
 (setq inhibit-compacting-font-caches t)
 
-;; Modeline
-(add-hook 'after-init-hook #'display-time-mode)
-(add-hook 'after-init-hook #'display-battery-mode)
+;; Modeline: Time
+(use-package time
+  :ensure nil
+  :hook ((after-init . display-time-mode))
+  :config
+  (setopt display-time-24hr-format t))
+
+;; Modeline: Battery
+(use-package battery
+  :if (not shl-is-wsl)
+  :ensure nil
+  :hook ((after-init . display-battery-mode))
+  :config
+  (setq battery-mode-line-format
+          (cond
+           ((eq battery-status-function #'battery-linux-proc-acpi)
+	        "⏻%b%p%%,%d°C ")
+	       (battery-status-function
+	        "⏻%b%p%% "))))
 
 (provide 'shl-appearance)
 #+end_src
@@ -317,7 +345,9 @@ Using Prot's ~modus-themes~ and his ~fontaine~ package for font management.
 I use Purcell's ~exec-path-from-shell~ to ensure that Emacs follow the system configuration for my environment variables.
 
 #+begin_src emacs-lisp :tangle "shl-modules/shl-essentials.el" :mkdirp yes
-(shl-pkg-config 'exec-path-from-shell
+(use-package exec-path-from-shell
+  :ensure t
+  :config
   (when (or (memq window-system '(mac ns x pgtk))
             (unless (memq system-type '(ms-dos windows-nt))
               (daemonp)))
@@ -329,22 +359,24 @@ I use Purcell's ~exec-path-from-shell~ to ensure that Emacs follow the system co
 Backups and autosaves are fine - but I do not want them to clutter up my systems.
 
 #+begin_src emacs-lisp :tangle "shl-modules/shl-essentials.el" :mkdirp yes
-(let ((backup-dir "~/.cache/tmp/emacs/backups")
-      (auto-saves-dir "~/.cache/tmp/emacs/auto-saves/"))
-  (dolist (dir (list backup-dir auto-saves-dir))
-    (when (not (file-directory-p dir))
-      (make-directory dir t)))
-  (setq backup-directory-alist `(("." . ,backup-dir))
-        auto-save-file-name-transforms `((".*" ,auto-saves-dir t))
-        tramp-backup-directory-alist `((".*" . ,backup-dir))
-        tramp-auto-save-directory auto-saves-dir))
 
-
-(setopt backup-by-copying t    ; Don't delink hardlinks
-	delete-old-versions t  ; Clean up the backups
-	version-control t      ; Use version numbers on backups,
-	kept-new-versions 5    ; keep some new versions
-	kept-old-versions 2)   ; and some old ones, too
+(use-package files
+  :ensure nil
+  :config
+  (let ((backup-dir "~/.cache/tmp/emacs/backups")
+        (auto-saves-dir "~/.cache/tmp/emacs/auto-saves/"))
+    (dolist (dir (list backup-dir auto-saves-dir))
+      (when (not (file-directory-p dir))
+        (make-directory dir t)))
+    (setq backup-directory-alist `(("." . ,backup-dir))
+          auto-save-file-name-transforms `((".*" ,auto-saves-dir t))
+          tramp-backup-directory-alist `((".*" . ,backup-dir))
+          tramp-auto-save-directory auto-saves-dir))
+  (setopt backup-by-copying t    ; Don't delink hardlinks
+	  delete-old-versions t  ; Clean up the backups
+	  version-control t      ; Use version numbers on backups,
+	  kept-new-versions 5    ; keep some new versions
+	  kept-old-versions 2))   ; and some old ones, too
 #+end_src
 
 ** General settings
@@ -371,39 +403,48 @@ Backups and autosaves are fine - but I do not want them to clutter up my systems
 #+end_src
 
 ** User Experience
-
 *** Minibuffer Completion
 
 I use the ~vertico~, ~consult~, ~embark~ and ~marginalia~ stack.
 
 #+begin_src emacs-lisp :tangle "shl-modules/shl-completion.el" :mkdirp yes
-(shl-pkg-config 'vertico
+(use-package vertico
+  :ensure t
+  :hook ((after-init . vertico-mode))
+  :config
   (setopt vertico-scroll-margin 0
 	  vertico-count 5
 	  vertico-resize t
-	  vertico-cycle t)
-  (vertico-mode))
+	  vertico-cycle t))
 
-(shl-pkg-config 'embark
-  (global-set-key (kbd "C-.") 'embark-act)
-  (global-set-key (kbd "M-.") 'embark-dwim))
+(use-package embark
+  :ensure t
+  :bind (:map global-map
+              ("C-." . embark-act)
+              ("M-." . embark-dwim)))
 
-(shl-pkg-config 'consult
-  (global-set-key [remap switch-to-buffer] 'consult-buffer)
-  (global-set-key [remap switch-to-buffer-other-window] 'consult-buffer-other-window)
-  (global-set-key [remap switch-to-buffer-other-frame] 'consult-buffer-other-frame)
-  (global-set-key [remap goto-line] 'consult-goto-line))
+(use-package consult
+  :ensure t
+  :bind (:map global-map
+              ("C-x b" . consult-buffer)
+              ("M-g g" . consult-goto-line)
+              :map org-mode-map
+              ("M-g g" . consult-org-heading)))
+  
+(use-package embark-consult
+  :ensure t
+  :after embark
+  :hook ((embar-collect-mode . embark-collect-preview-minor-mode)))
 
-(shl-pkg-config 'embark-consult
-  (with-eval-after-load 'embark
-    (require 'embark-consult)
-    (add-hook 'embark-collect-mode-hook 'embark-consult-preview-minor-mode)))
+(use-package marginalia
+  :ensure t
+  :hook ((after-init . marginalia-mode))
+  :config
+  (setopt marginalia-max-relative-age 0)) ;; Use absolute time
 
-(shl-pkg-config 'marginalia
-  (setopt marginalia-max-relative-age 0) ;; Use absolute time
-  (marginalia-mode))
-
-(shl-pkg-config 'orderless
+(use-package orderless
+  :ensure t
+  :config
   (setq completion-category-defaults nil
         completion-category-overrides '((eglot (styles orderless))
                                         (eglot-capf (styles orderless)))
@@ -417,9 +458,13 @@ I use the ~vertico~, ~consult~, ~embark~ and ~marginalia~ stack.
 *** Completion
 
 #+begin_src emacs-lisp :tangle "shl-modules/shl-completion.el" :mkdirp yes
-(shl-pkg-config 'corfu
-  (add-hook 'after-init-hook #'global-corfu-mode)
-
+(use-package corfu
+  :ensure t
+  :hook ((after-init . global-corfu-mode))
+  :bind (:map corfu-map
+              ("C-y" . corfu-insert)
+              ("RET" . nil))
+  :config
   (setq global-corfu-modes '((not erc-mode
                                   circe-mode
                                   help-mode
@@ -440,54 +485,49 @@ I use the ~vertico~, ~consult~, ~embark~ and ~marginalia~ stack.
 	  corfu-on-exact-match nil
 	  corfu-quit-at-boundary 'separator
 	  corfu-quit-no-match 'separator)
-  (setq text-mode-ispell-word-completion nil)
+  (setq text-mode-ispell-word-completion nil))
 
-  (with-eval-after-load 'corfu
-    (require 'corfu-history)
-    (add-hook 'corfu-mode-hook 'corfu-history-mode)
-
-    (with-eval-after-load 'savehist
+(use-package corfu-history
+  :after corfu
+  :hook ((corfu-mode . corfu-history-mode))
+  :config
+  (with-eval-after-load 'savehist
       (add-to-list 'savehist-additional-variables 'corfu-history)))
 
-  ;; Rebinding keys
-  (with-eval-after-load 'corfu
-    (shl-bind-key corfu-map
-      "C-y" #'corfu-insert
-      "RET" nil))
-
-  
-
-  ;; Popopinfo
-  (with-eval-after-load 'corfu
-    (require 'corfu-popupinfo)
-    (add-hook 'corfu-mode-hook 'corfu-popupinfo-mode)
-    (setq corfu-popupinfo-delay '(0.5 . 1.0))))
+(use-package corfu-popupinfo
+  :after corfu
+  :hook ((corfu-mode . corfu-popupinfo-mode))
+  :config
+  (setq corfu-popupinfo-delay '(0.5 . 1.0)))
 
 (provide 'shl-completion)
 #+end_src
-
 
 *** General Settings
 
 #+begin_src emacs-lisp :tangle "shl-modules/shl-essentials.el" :mkdirp yes
 ;; Ensure that opening parentheses are paired with closing
-(add-hook 'prog-mode-hook #'electric-pair-mode)
-(add-hook 'prog-mode-hook #'electric-indent-mode)
+(use-package elec-pair
+  :ensure nil
+  :hook ((prog-mode . electric-pair-mode)))
+
+(use-package electric
+  :ensure nil
+  :hook ((prog-mode . electric-indent-mode)))
 
 ;; Subword-mode enables moving in CamelCase and snake_case
-(global-subword-mode)
+(use-package subword
+  :ensure nil
+  :hook ((after-init . global-subword-mode)))
 
-;; Delete selection
-(add-hook 'after-init-hook #'delete-selection-mode)
+
+(use-package delsel
+  :ensure nil
+  :hook ((after-init . delete-selection-mode)))
 
 ;; Expand Region makes for a nicer way to mark stuff
-(shl-pkg-config 'expand-region
-  (shl-bind-key global-map
-    "M-h" #'er/expand-region))
-
-
-;; Hippie Expand instead of dabbrev
-(global-set-key [remap dabbre-expand] 'hippie-expand)
+(use-package expand-region
+  :bind (("M-h" . er/expand-region)))
 
 (provide 'shl-essentials)
 #+end_src
@@ -505,8 +545,11 @@ I use the ~vertico~, ~consult~, ~embark~ and ~marginalia~ stack.
 *** Magit
 
 #+begin_src emacs-lisp :tangle "shl-modules/shl-development.el" :mkdirp yes
-(shl-pkg-config 'magit
-  (global-set-key (kbd "C-x g") #'magit-status))
+(use-package magit
+  :bind (("C-x g" . magit-status))
+  :config
+  (setopt magit-repository-directories
+          '(("~/data/source" . 1))))
 #+end_src
 
 *** Eshell
@@ -533,18 +576,21 @@ I use the ~vertico~, ~consult~, ~embark~ and ~marginalia~ stack.
 ** Org Mode
 
 #+begin_src emacs-lisp :tangle "shl-modules/shl-org.el" :mkdirp yes
-(global-set-key (kbd "C-c l") #'org-store-link)
-(global-set-key (kbd "C-c a") #'org-agenda)
-(global-set-key (kbd "C-c c") #'org-capture)
-
-(setopt org-directory (expand-file-name "~/data/org/"))
-(setq org-confirm-babel-evaluate nil)
-(setq org-src-window-setup 'current-window)
-(setq org-edit-src-persistent-message nil)
-(setq org-src-fontify-natively t)
-(setq org-src-preserve-indentation t)
-(setq org-src-tab-acts-natively t)
-(setq org-edit-src-content-indentation 0)
+(use-package org
+  :ensure t
+  :bind (:map global-map
+         ("C-c l" . org-store-link)
+         ("C-c a" . org-agenda)
+         ("C-c c" . org-capture))
+  :config
+  (setopt org-directory (expand-file-name "~/data/org/"))
+  (setq org-confirm-babel-evaluate nil)
+  (setq org-src-window-setup 'current-window)
+  (setq org-edit-src-persistent-message nil)
+  (setq org-src-fontify-natively t)
+  (setq org-src-preserve-indentation t)
+  (setq org-src-tab-acts-natively t)
+  (setq org-edit-src-content-indentation 0))
 
 (provide 'shl-org)
 #+end_src
