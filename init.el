@@ -4,6 +4,12 @@
 ;;;     configuration module is loaded at the correct time.
 ;;; Code:
 
+(defconst shl-theme "zenburn"
+  "Selected theme for the Emacs configuration")
+
+(defconst shl-dark-p t
+  "True for dark theme, nil for light.")
+
 (defconst shl--module-dir (concat user-emacs-directory "shl-modules")
   "Modules of my emacs configuration.")
 
@@ -27,6 +33,8 @@
   (shl--load-custom-lisp 'shl-core)
 
   ;; Load modules
+  (shl--load-module 'shl-themes)
+  (shl--load-module 'shl-font)
   (shl--load-module 'shl-appearance)
   (shl--load-module 'shl-essentials)
   (shl--load-module 'shl-completion)

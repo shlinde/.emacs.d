@@ -123,6 +123,8 @@ My Emacs configuration is split into several parts:
  (lambda (string)
    (add-to-list 'load-path (locate-user-emacs-file string)))
  '("shl-lisp" "shl-modules"))
+
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 #+end_src
 
 ** Load custom lisp
@@ -287,8 +289,13 @@ Using Prot's ~modus-themes~ and his ~fontaine~ package for font management.
 	  modus-themes-bold-constructs t
 	  modus-themes-completions '((t . (extrabold)))
 	  modus-themes-prompts '(extrabold)
-	  modus-themes-common-palette-overrides nil)
-  (modus-themes-load-theme (car modus-themes-to-toggle)))
+	  modus-themes-common-palette-overrides nil))
+  ;; (modus-themes-load-theme (car modus-themes-to-toggle)))
+
+(use-package zenburn-theme
+  :ensure t
+  :demand t
+  :config (load-theme 'zenburn :no-confirm))
 #+end_src
 
 *** General
@@ -567,6 +574,23 @@ I use the ~vertico~, ~consult~, ~embark~ and ~marginalia~ stack.
               ("C-M-r" . isearch-backward)))
 
 
+
+#+end_src
+
+*** Reading RFCs and Browsing
+
+#+begin_src emacs-lisp :tangle "shl-modules/shl-essentials.el"
+(use-package rfc-mode
+  :ensure t
+  :config
+  (setq rfc-mode-directory (expand-file-name "~/data/resources/rfc/")))
+
+(setq browse-url-function 'eww-browse
+      shr-use-colors nil
+      shr-folding-mode t)
+
+(global-set-key (kbd "C-c w") 'eww)
+
 (provide 'shl-essentials)
 #+end_src
 
@@ -621,21 +645,8 @@ I use the ~vertico~, ~consult~, ~embark~ and ~marginalia~ stack.
 (use-package zig-mode
   :ensure t)
 
-
-(use-package shr-tag-pre-highlight
-  :ensure t
-  :after shr
-  :config
-  (add-to-list 'shr-external-rendering-functions
-               '(pre . shr-tag-pre-highlight))
-  (when (version< emacs-version "26")
-    (with-eval-after-load 'eww
-      (advice-add 'eww-display-html :around
-                  'eww-display-html--override-shr-external-rendering-functions))))
-
 (provide 'shl-development)
 #+end_src
-
 
 
 ** Org Mode
@@ -649,6 +660,7 @@ I use the ~vertico~, ~consult~, ~embark~ and ~marginalia~ stack.
          ("C-c c" . org-capture))
   :config
   (setopt org-directory (expand-file-name "~/data/org/")
+          org-agenda-files `(,org-directory)
           org-default-notes-file (concat org-directory "/tasks.org")
           org-id-link-to-org-use-id t))
 
