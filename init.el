@@ -4,10 +4,10 @@
 ;;;     configuration module is loaded at the correct time.
 ;;; Code:
 
-(defconst shl-theme "zenburn"
+(defconst shl-theme "ef"
   "Selected theme for the Emacs configuration")
 
-(defconst shl-dark-p t
+(defconst shl-dark-p nil
   "True for dark theme, nil for light.")
 
 (defconst shl--module-dir (concat user-emacs-directory "shl-modules")
@@ -35,8 +35,9 @@
   ;; Load modules
   (shl--load-module 'shl-themes)
   (shl--load-module 'shl-font)
-  (shl--load-module 'shl-appearance)
+  (shl--load-module 'shl-ui)
   (shl--load-module 'shl-essentials)
-  (shl--load-module 'shl-completion)
-  (shl--load-module 'shl-development)
+  (shl--load-module 'shl-motion)
+  (shl--load-module 'shl-tools)
+  (shl--load-module 'shl-langs)
   (shl--load-module 'shl-org))

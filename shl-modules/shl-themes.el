@@ -20,6 +20,26 @@
 	  modus-themes-common-palette-overrides nil)
   (modus-themes-load-theme (car modus-themes-to-toggle)))
 
+(use-package ef-themes
+  :if (string= shl-theme "ef")
+  :ensure t
+  :demand t
+  :config
+  (setopt ef-themes-to-toggle '(ef-cyprus ef-autumn)
+   ef-themes-variable-pitch-ui t
+          ef-themes-mixed-fonts t
+          ef-themes-rotate ef-themes-items)
+  (defun my-ef-themes-mode-line ()
+    "Tweak the style of the mode lines."
+    (ef-themes-with-colors
+      (custom-set-faces
+       `(mode-line ((,c :background ,bg-active :foreground ,fg-main :box (:line-width 1 :color ,fg-dim))))
+       `(mode-line-inactive ((,c :box (:line-width 1 :color ,bg-active)))))))
+
+  (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mode-line)
+  (ef-themes-select (car ef-themes-to-toggle)))
+
+
 (use-package zenburn-theme
   :if (string= shl-theme "zenburn")
   :ensure t

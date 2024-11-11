@@ -23,6 +23,8 @@
            :variable-pitch-family "Iosevka Comfy Duo"
            :default-weight medium) ; like this it uses all the fallback values and is named `regular'
           (regular-light 
+           :default-family "Iosevka Comfy"
+           :variable-pitch-family "Iosevka Comfy Duo"
            :default-weight semilight) ; like this it uses all the fallback values and is named `regular'
           (medium-light
            :default-weight semilight
@@ -35,6 +37,10 @@
            :default-weight medium
            :default-height 125
            :bold-weight extrabold))))
+
+;; Speed up font rendering for special characters
+;; @see https://www.reddit.com/r/emacs/comments/988paa/emacs_on_windows_seems_lagging/
+(setq inhibit-compacting-font-caches t)
 
 (provide 'shl-font)
 ;;; shl-font.el ends here

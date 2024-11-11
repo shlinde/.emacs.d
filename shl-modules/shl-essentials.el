@@ -1,3 +1,12 @@
+;;; Essential Configurations for Emacs -*- lexical-binding: t -*-
+;;; Commentary:
+;;;     This module sets up some essential configurations for Emacs.
+;;;     It ensures that the Emacs PATH and system PATH is aligned.
+;;;     Removes Emacs cluttering capabilities.
+;;;     Ensures that we save our interaction history.
+;;; Code:
+
+;; Setup PATH to follow system
 (use-package exec-path-from-shell
   :ensure t
   :config
@@ -25,37 +34,28 @@
 	  kept-old-versions 2))   ; and some old ones, too
 
 ;; Turn on savehist mode
-(savehist-mode 1)
+(use-package savehist
+  :ensure nil
+  :hook (after-init . savehist-mode))
 
-;; Settings
-(setopt ring-bell-function 'ignore
-	custom-file (concat user-emacs-directory "custom.el")
-        bookmark-default-file (locate-user-emacs-file ".bookmarks.el")  ;; Hide bookmarks.el, to not clutter user-emacs-dir
-        use-short-answers t  ;; Use y and n instead of yes and no.
-	buffer-menu-max-size 30
-        inhibit-splash-screen t
-	case-fold-search t  ;; Ignore case while searching
-	column-number-mode t  ;; Show column number in modeline
-	indent-tabs-mode nil  ;; Ensure that all indentation is with spaces
-	create-lockfiles nil  ;; Don't clutter directories with lock files
-	save-interprogram-paste-before-kill t  ;; Save existing clipboard text into kill ring before replacing.
-	scroll-preserve-screen-position 'always  ;; Ensure that scrolling does not move point
-        truncate-lines nil ;; Truncate lines when wider than buffer-width
-        truncate-partial-width-windows nil
-        save-interprogram-paste-before-kill t
-        apropos-do-all t
-        require-final-newline t
-        load-prefer-newer t)
+;; 
+(use-package emacs
+  :ensure nil
+  :config
+  (setopt custom-file (concat user-emacs-directory "custom.el")
+          bookmark-default-file (locate-user-emacs-file ".bookmarks.el")  ;; Hide bookmarks.el, to not clutter user-emacs-dir
+          inhibit-splash-screen t
+	  case-fold-search t  ;; Ignore case while searching
+	  create-lockfiles nil  ;; Don't clutter directories with lock files
+	  save-interprogram-paste-before-kill t  ;; Save existing clipboard text into kill ring before replacing.
+          apropos-do-all t
+          load-prefer-newer t))
+
 
 (use-package uniquify
   :ensure nil
   :config
   (setq uniquify-buffer-name-style 'forward))
-
-(use-package pdf-tools
-  :ensure t
-  :init
-  (pdf-tools-install))
 
 ;; Ensure that opening parentheses are paired with closing
 (use-package elec-pair
@@ -66,43 +66,9 @@
   :ensure nil
   :hook ((prog-mode . electric-indent-mode)))
 
-;; Subword-mode enables moving in CamelCase and snake_case
-(use-package subword
-  :ensure nil
-  :hook ((after-init . global-subword-mode)))
-
-
 (use-package delsel
   :ensure nil
   :hook ((after-init . delete-selection-mode)))
 
-;; Expand Region makes for a nicer way to mark stuff
-(use-package expand-region
-  :ensure t
-  :bind (("M-h" . er/expand-region)))
-
-(use-package hippie-exp
-  :ensure nil
-  :bind (:map global-map
-         ("M-/" . hippie-expand)))
-
-(use-package isearch
-  :ensure nil
-  :bind (:map global-map
-              ("C-s" . isearch-forward-regexp)
-              ("C-r" . isearch-backward-regexp)
-              ("C-M-s" . isearch-forward)
-              ("C-M-r" . isearch-backward)))
-
-(use-package rfc-mode
-  :ensure t
-  :config
-  (setq rfc-mode-directory (expand-file-name "~/data/resources/rfc/")))
-
-(setq browse-url-function 'eww-browse
-      shr-use-colors nil
-      shr-folding-mode t)
-
-(global-set-key (kbd "C-c w") 'eww)
-
 (provide 'shl-essentials)
+;;; shl-essentials.el ends here
