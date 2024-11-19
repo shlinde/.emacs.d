@@ -9,27 +9,29 @@
   :hook ((after-init . fontaine-mode)
          (after-init . (lambda ()
                          (if shl-dark-p
-                             (fontaine-set-preset 'regular-dark)
-                           (fontaine-set-preset 'regular-light)))))
+                             (fontaine-set-preset 'medium-dark)
+                           (fontaine-set-preset 'medium-light)))))
   :config
   (setopt x-underline-at-descent-line nil)
   (setq fontaine-presets
         '((small
-           :default-family "Iosevka Comfy Motion"
+           :default-family "ZedMono Nerd Font"
            :default-height 80
            :variable-pitch-family "Iosevka Comfy Duo")
           (regular-dark
-           :default-family "Iosevka Comfy"
+           :default-family "ZedMono Nerd Font"
            :variable-pitch-family "Iosevka Comfy Duo"
            :default-weight medium) ; like this it uses all the fallback values and is named `regular'
           (regular-light 
-           :default-family "Iosevka Comfy"
+           :default-family "ZedMono Nerd Font"
            :variable-pitch-family "Iosevka Comfy Duo"
            :default-weight semilight) ; like this it uses all the fallback values and is named `regular'
           (medium-light
+           :default-family "ZedMono Nerd Font"
            :default-weight semilight
            :default-height 115)
           (medium-dark
+           :default-family "ZedMono Nerd Font"
            :default-weight medium
            :default-height 115
            :bold-weight extrabold)

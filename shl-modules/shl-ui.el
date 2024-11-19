@@ -62,5 +62,14 @@
           truncate-partial-width-windows nil
           require-final-newline t))
 
+(use-package doom-modeline
+  :ensure t
+  :config
+  (doom-modeline-mode))
+
+(use-package all-the-icons
+  :ensure t
+  :if (display-graphic-p))
+
 (provide 'shl-ui)
 ;;; shl-ui.el ends here

@@ -4,10 +4,10 @@
 ;;;     configuration module is loaded at the correct time.
 ;;; Code:
 
-(defconst shl-theme "ef"
+(defconst shl-theme "doom"
   "Selected theme for the Emacs configuration")
 
-(defconst shl-dark-p nil
+(defconst shl-dark-p t
   "True for dark theme, nil for light.")
 
 (defconst shl--module-dir (concat user-emacs-directory "shl-modules")

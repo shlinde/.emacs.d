@@ -116,14 +116,34 @@
          ("M-/" . hippie-expand)))
 
 ;; Treesitter
-(use-package treesit-auto
+;; (use-package treesit-auto
+;;   :ensure t
+;;   :custom
+;;   (treesit-auto-install 'prompt)
+;;   :config
+;;   (setq treesit-font-lock-level 4)
+;;   ;; (treesit-auto-add-to-auto-mode-alist 'all)
+;;   (global-treesit-auto-mode))
+
+(use-package treemacs
   :ensure t
-  :custom
-  (treesit-auto-install 'prompt)
+  :defer t
+  :init
+  (setq treemacs-follow-after-init t
+        treemacs-is-never-other-window t
+        treemacs-sorting 'alphabetic-case-insensitive-asc)
   :config
-  (setq treesit-font-lock-level 4)
-  (treesit-auto-add-to-auto-mode-alist 'all)
-  (global-treesit-auto-mode))
+  ;; Don't follow the cursor (it's more disruptive/jarring than helpful as a default)
+  (treemacs-follow-mode -1))
+
+
+(use-package treemacs-nerd-icons
+  :ensure t
+  :defer t
+  ;; HACK: Because `lsp-treemacs' mutates Treemacs' default theme, and
+  ;;   `treemacs-nerd-icons' reads from it to populate its nerd-icons theme,
+  ;;   load order is important to ensure they don't step on each other's toes.
+  :config (treemacs-load-theme "nerd-icons"))
 
 ;; Direnv integration
 (use-package envrc

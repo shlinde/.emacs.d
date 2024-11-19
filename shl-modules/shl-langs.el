@@ -18,5 +18,22 @@
 (use-package pyvenv
   :ensure t)
 
+(use-package cc-mode
+  :config
+  (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
+  (when (listp c-default-style)
+    (setf (alist-get 'other c-default-style) "llvm")))
+
+(use-package modern-cpp-font-lock
+  :ensure t
+  :hook (c++-mode . modern-c++-font-lock-mode))
+
+;;; IEdit: rename the symbol under point
+(use-package iedit
+  :ensure t
+  :init
+  ;;; Fix A bug (normal key is "C-;")
+  :bind ("C-c ;" . #'iedit-mode))
+
 (provide 'shl-langs)
 ;;; shl-langs.el ends here
