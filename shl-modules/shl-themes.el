@@ -11,7 +11,9 @@
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  (load-theme 'doom-tokyo-night t)
+  (if shl-dark-p
+      (load-theme 'doom-tokyo-night :no-confirm)
+    (load-theme 'doom-one-light :no-confirm))
 
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)

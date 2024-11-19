@@ -37,6 +37,7 @@
   (shl--load-module 'shl-font)
   (shl--load-module 'shl-ui)
   (shl--load-module 'shl-essentials)
+  (shl--load-module 'shl-evil)
   (shl--load-module 'shl-motion)
   (shl--load-module 'shl-tools)
   (shl--load-module 'shl-langs)

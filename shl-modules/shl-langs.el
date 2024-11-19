@@ -32,8 +32,11 @@
 (use-package iedit
   :ensure t
   :init
-  ;;; Fix A bug (normal key is "C-;")
+  ;;; Fix A bug (normal key is "C-;")1
   :bind ("C-c ;" . #'iedit-mode))
+
+(use-package cmake-mode
+  :ensure t)
 
 (provide 'shl-langs)
 ;;; shl-langs.el ends here

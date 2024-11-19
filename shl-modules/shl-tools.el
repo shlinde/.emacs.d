@@ -116,14 +116,17 @@
          ("M-/" . hippie-expand)))
 
 ;; Treesitter
-;; (use-package treesit-auto
-;;   :ensure t
-;;   :custom
-;;   (treesit-auto-install 'prompt)
-;;   :config
-;;   (setq treesit-font-lock-level 4)
-;;   ;; (treesit-auto-add-to-auto-mode-alist 'all)
-;;   (global-treesit-auto-mode))
+(use-package treesit-auto
+  :ensure t
+  :custom
+  (treesit-auto-install 'prompt)
+  :config
+  (setq treesit-font-lock-level 4)
+  (setq c-ts-mode-indent-offset 4
+        c-ts-mode-indent-style 'linux)
+
+  ;; (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode))
 
 (use-package treemacs
   :ensure t
@@ -150,6 +153,38 @@
   :ensure t
   :hook (after-init . envrc-global-mode))
 
+(use-package rtags
+  :ensure t)
+
+;; CMake Integration
+(use-package cmake-ide
+  :ensure t
+  :config
+  (require 'rtags)
+  (cmake-ide-setup))
+
+;; LSP
+(use-package lsp-mode
+  :ensure t)
+
+(use-package lsp-ui
+  :ensure t
+  :config
+  (setq lsp-ui-sideline-enable t
+        lsp-ui-doc-enable t
+        lsp-ui-peek-enable t
+        lsp-ui-peek-always-show t)
+  (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
+  (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l .") 'lsp-ui-peek-find-definitions)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l ?") 'lsp-ui-peek-find-references)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l r") 'lsp-rename)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l x") 'lsp-workspace-restart)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l w") 'lsp-ui-peek-find-workspace-symbol)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l i") 'lsp-ui-peek-find-implementation)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l d") 'lsp-describe-thing-at-point)
+  (define-key lsp-ui-mode-map (kbd "C-c C-l e") 'lsp-execute-code-action))
+  
 
 
 (provide 'shl-tools)

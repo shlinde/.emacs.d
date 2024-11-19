@@ -62,6 +62,9 @@
           truncate-partial-width-windows nil
           require-final-newline t))
 
+(use-package nerd-icons
+  :ensure t)
+
 (use-package doom-modeline
   :ensure t
   :config
