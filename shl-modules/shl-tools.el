@@ -67,47 +67,47 @@
   (pdf-tools-install))
 
 ;; Completion in Region
-(use-package corfu
-  :ensure t
-  :hook ((after-init . global-corfu-mode))
-  :bind (:map corfu-map
-              ("C-y" . corfu-insert)
-              ("RET" . nil))
-  :config
-  (setq global-corfu-modes '((not erc-mode
-                                  circe-mode
-                                  help-mode
-                                  gud-mode
-                                  eat-mode
-                                  inferior-python-mode)
-                             t))
+;; (use-package corfu
+;;   :ensure t
+;;   :hook ((after-init . global-corfu-mode))
+;;   :bind (:map corfu-map
+;;               ("C-y" . corfu-insert)
+;;               ("RET" . nil))
+;;   :config
+;;   (setq global-corfu-modes '((not erc-mode
+;;                                   circe-mode
+;;                                   help-mode
+;;                                   gud-mode
+;;                                   eat-mode
+;;                                   inferior-python-mode)
+;;                              t))
 
-  (setopt corfu-auto t
-	  corfu-auto-delay 0.1
-	  corfu-auto-prefix 1
-	  corfu-cycle t
-	  corfu-separator ?\s
-	  corfu-preselect 'first
-	  corfu-count 16
-	  corfu-max-width 120
-	  corfu-preview-current nil
-	  corfu-on-exact-match nil
-	  corfu-quit-at-boundary 'separator
-	  corfu-quit-no-match 'separator)
-  (setq text-mode-ispell-word-completion nil))
+;;   (setopt corfu-auto t
+;; 	  corfu-auto-delay 0.1
+;; 	  corfu-auto-prefix 1
+;; 	  corfu-cycle t
+;; 	  corfu-separator ?\s
+;; 	  corfu-preselect 'first
+;; 	  corfu-count 16
+;; 	  corfu-max-width 120
+;; 	  corfu-preview-current nil
+;; 	  corfu-on-exact-match nil
+;; 	  corfu-quit-at-boundary 'separator
+;; 	  corfu-quit-no-match 'separator)
+;;   (setq text-mode-ispell-word-completion nil))
 
-(use-package corfu-history
-  :after corfu
-  :hook ((corfu-mode . corfu-history-mode))
-  :config
-  (with-eval-after-load 'savehist
-      (add-to-list 'savehist-additional-variables 'corfu-history)))
+;; (use-package corfu-history
+;;   :after corfu
+;;   :hook ((corfu-mode . corfu-history-mode))
+;;   :config
+;;   (with-eval-after-load 'savehist
+;;       (add-to-list 'savehist-additional-variables 'corfu-history)))
 
-(use-package corfu-popupinfo
-  :after corfu
-  :hook ((corfu-mode . corfu-popupinfo-mode))
-  :config
-  (setq corfu-popupinfo-delay '(0.5 . 1.0)))
+;; (use-package corfu-popupinfo
+;;   :after corfu
+;;   :hook ((corfu-mode . corfu-popupinfo-mode))
+;;   :config
+;;   (setq corfu-popupinfo-delay '(0.5 . 1.0)))
 
 ;; Better Dabbrev 
 (use-package hippie-exp
@@ -185,6 +185,14 @@
   (define-key lsp-ui-mode-map (kbd "C-c C-l d") 'lsp-describe-thing-at-point)
   (define-key lsp-ui-mode-map (kbd "C-c C-l e") 'lsp-execute-code-action))
   
+
+(use-package company
+  :ensure t
+  :hook (after-init . global-company-mode)
+  :config
+  (setopt company-global-modes '(not erc-mode message-mode eat-mode inferior-python-mode)
+          company-idle-delay 1
+          company-idle-delay (lambda () (if (company-in-string-or-comment) nil 0.2))))
 
 
 (provide 'shl-tools)

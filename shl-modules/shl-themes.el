@@ -32,7 +32,7 @@
   :bind (("<f5>" . modus-themes-toggle))
   :config
   (setopt modus-themes-custom-auto-relload nil
-	  modus-themes-to-toggle '(modus-vivendi modus-operandi)
+	  modus-themes-to-toggle '(modus-vivendi-tinted modus-operandi)
 	  modus-themes-mixed-fonts t
 	  modus-themes-italic-constructs t
 	  modus-themes-bold-constructs t
