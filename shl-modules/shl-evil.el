@@ -26,6 +26,7 @@
   (evil-set-leader 'normal "," t)
 
   (evil-define-key 'normal 'global (kbd "<leader>ff") 'project-find-file)
+  (evil-define-key 'normal 'global (kbd "<leader>pp") 'project-switch-project)
 
   ;; How to handle undo
   (setq evil-undo-system 'undo-redo)
