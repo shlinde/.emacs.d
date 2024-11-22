@@ -8,6 +8,10 @@
 
 (use-package evil
   :ensure t
+  :init
+  (setopt evil-want-keybinding nil
+          evil-want-integration t)
+
   :config
   (evil-mode 1)
 
@@ -69,4 +73,9 @@
   :after evil
   :config (evil-commentary-mode))
 
-;;; shl-evil.el ends here
+(use-package evil-collection
+  :ensure t
+  :config
+  (evil-collection-init))
+
+
