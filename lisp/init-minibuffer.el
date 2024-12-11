@@ -5,6 +5,29 @@
 ;;; Commentary:
 ;;; Code:
 
+;;; General Configuration
+;; Allow for minibuffer-ception. Sometimes we need another minibuffer command
+;; while we're in the minibuffer.
+(setq enable-recursive-minibuffers t)
+
+;; Show current key-sequence in minibuffer ala 'set showcmd' in vim. Any
+;; feedback after typing is better UX than no feedback at all.
+(setq echo-keystrokes 0.02)
+
+;; Expand the minibuffer to fit multi-line text displayed in the echo-area. This
+;; doesn't look too great with direnv, however...
+(setq resize-mini-windows 'grow-only)
+
+;; Typing yes/no is obnoxious when y/n will do
+(when (boundp 'use-short-answers)
+  (setq use-short-answers t)
+  (define-key y-or-n-p-map " " nil))
+
+;; Try to keep the cursor out of the read-only portions of the minibuffer.
+(setq minibuffer-prompt-properties '(read-only t intangible t cursor-intangible t face minibuffer-prompt))
+(add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
+
+
 ;;; Vertico
 (use-package vertico
   :ensure (:files (:defaults "extensions/*.el"))

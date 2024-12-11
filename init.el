@@ -21,11 +21,17 @@
 ;;; UI Setup
 (require 'init-ui)
 
+;;; Editor Setup
+(require 'init-editor)
+
 ;;; Version Control Setup
 (require 'init-vcs)
 
 ;;; Setup Minibuffer
 (require 'init-minibuffer)
+
+;;; Setup AI Companion
+(require 'init-ai)
 
 (provide 'init)
 ;;; init.el ends here
