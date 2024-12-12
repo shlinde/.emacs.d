@@ -30,8 +30,17 @@
 ;;; Setup Minibuffer
 (require 'init-minibuffer)
 
+;;; Setup Org
+(require 'init-org)
+
 ;;; Setup AI Companion
 (require 'init-ai)
+
+;;; Python
+(require 'init-python)
+
+;;; Setup Hydra
+(require 'init-hydra)
 
 (provide 'init)
 ;;; init.el ends here

@@ -228,6 +228,13 @@
               (setq display-line-numbers 'relative)))
   (setq-default display-line-numbers-widen t))
 
+;;; Icons
+(use-package nerd-icons
+  :ensure t)
+
+(use-package nerd-icons-dired
+  :ensure t
+  :hook (dired-mode . nerd-icons-dired-mode))
 
 (provide 'init-ui)
 ;;; init-ui.el ends here

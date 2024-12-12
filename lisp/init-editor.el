@@ -1,4 +1,4 @@
-;;; init-core.el --- Core Settings and Helpers -*- lexical-binding: t; -*-
+;;; init-editor.el --- Editor Setup -*- lexical-binding: t; -*-
 ;;;
 ;;; Author: Sebastian Hempel Linde <sebastian@hempellinde.com>
 ;;;
@@ -170,10 +170,20 @@ the unwritable tidbits."
   :hook (after-init . save-place-mode)
   :custom (save-place-file (concat shl--cache-dir "saveplace")))
 
+;; Expand Region
+(use-package expand-region
+  :ensure t
+  :bind ("M-h" . er/expand-region))
+
+;; Multiple Cursors Emacs
+(use-package multiple-cursors
+  :ensure t)
+
 ;;; Environment
 (use-package exec-path-from-shell
   :ensure t
   :hook (after-init . exec-path-from-shell-initialize))
+
 
 (provide 'init-editor)
 ;;; init-core.el ends here

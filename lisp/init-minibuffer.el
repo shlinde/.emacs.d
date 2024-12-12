@@ -61,6 +61,20 @@
                            #'ignore))
                   (apply args)))))
 
+(use-package orderless
+  :ensure t
+  :demand t
+  :config
+  (defun prefixes-for-separators (pattern _index _total)
+    (when (string-match-p "^[^][^\\+*]*[./-][^][\\+*$]*$" pattern)
+      (cons 'orderless-prefixes pattern)))
+  (cl-pushnew '(?` . orderless-regexp) orderless-affix-dispatch-alist)
+
+  (setopt completion-styles '(orderless))
+  :custom
+  (orderless-style-dispatchers
+   '(orderless-affix-dispatch prefixes-for-separators)))
+
 ;;; Consult
 (use-package consult
   :ensure t
@@ -86,17 +100,14 @@
          ("M-s g"   . consult-ripgrep)
          ("M-s G"   . consult-git-grep)
          ("C-x C-r" . consult-recent-file)
-         ("s-b" . consult-buffer)
          ("M-g j" . consult-compile-error)
          ("M-g g" . consult-goto-line)
-         ;; ("H-b" . consult-buffer)
+         ("M-g M-g" . consult-goto-line)
          ("M-m" . consult-register-store)
          ("M-s k l" . consult-focus-lines)
          ("M-'" . consult-register-load)
          ("M-y" . consult-yank-pop)
          ("C-x `" . consult-compile-error)
-         :map help-map
-         ("TAB" . consult-info)
          :map ctl-x-r-map
          ("b" . consult-bookmark)
          ("x" . consult-register)
@@ -104,8 +115,6 @@
          ("b" . consult-buffer-other-window)
          :map ctl-x-5-map
          ("b" . consult-buffer-other-frame)
-         ;; :map space-menu-file-map
-         ;; ("l" . consult-locate)
          :map minibuffer-local-map
          ("M-r" . consult-history)
          :map project-prefix-map
