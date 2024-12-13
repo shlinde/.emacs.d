@@ -1,0 +1,7 @@
+.mc-lists.el
+bookmarks
+eln-cache/
+eshell/
+projectile-bookmarks.eld
+projects
+transient/
