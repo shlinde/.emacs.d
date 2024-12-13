@@ -50,6 +50,10 @@
   ;; Enable use-package :ensure support for Elpaca.
   (elpaca-use-package-mode))
 
+(eval-when-compile
+  (require 'use-package)
+  (setq use-package-always-defer t))
+
 (elpaca-wait)
 
 (provide 'init-elpaca)

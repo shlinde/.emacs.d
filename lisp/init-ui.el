@@ -7,7 +7,9 @@
 
 ;;; Theme
 (use-package modus-themes
+  :disabled
   :ensure t
+  :demand t
   :config
   (setq modus-themes-mode-line '(accented borderless)
 	modus-themes-bold-constructs t
@@ -26,8 +28,23 @@
 	'((1 . (rainbow overline background 1.4))
           (2 . (rainbow background 1.3))
           (3 . (rainbow bold 1.2))
-          (t . (semilight 1.1))))
-  (modus-themes-select 'modus-vivendi-tinted))
+          (t . (semilight 1.1)))))
+  ;; (modus-themes-select 'modus-vivendi-tinted))
+
+(use-package doom-themes
+  :disabled
+  :ensure t
+  :demand t
+  :config (load-theme 'doom-zenburn :no-confirm))
+
+(use-package zenburn-theme
+  :ensure t
+  :demand t
+  :config
+  (setq zenburn-use-variable-pitch t ; use variable-pitch fonts for some headings and titles
+        zenburn-scale-org-headlines t ; scale headings in org-mode
+        zenburn-scale-outline-headlines t) ; scale headings in outline-mode
+  (load-theme 'zenburn :no-confirm))
 
 ;;; Font
 ;;;; Fontaine (font configurations)
@@ -48,7 +65,7 @@
            :default-weight medium
            :default-height 110
            :bold-weight extrabold
-           :default-family "Iosevka Comfy"
+           :default-family "Office Code Pro"
            :variable-pitch-family "Iosevka Comfy Motion")
           (regular-light 
            :default-weight semilight

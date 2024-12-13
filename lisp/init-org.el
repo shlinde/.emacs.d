@@ -47,6 +47,10 @@
 ;;; Configuration
 (use-package org
   :ensure t
+  :general (general-spc
+             "c" #'org-capture
+             "l" #'org-store-link
+             "a" #'org-agenda)
   :bind (:map global-map
          ("C-c l" . org-store-link)
          ("C-c o" . org-open-at-point-global)
@@ -64,7 +68,7 @@
   (setq org-capture-templates
         '(("j" "Journal" entry (file+datetree shl-journal-file)
            "* %?\n%U\n%i\n\n")
-          ("t" "Task" entry (file tasks-file)
+          ("t" "Task" entry (file shl-tasks-file)
            "* TODO %?\n%U\n")
           ("n" "Task" entry (file shl-notes-file)
            "* %?\n%U\n%i\n\n"))))

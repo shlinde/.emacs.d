@@ -8,6 +8,9 @@
 (require 'init-core)
 
 ;;; File Handling
+;; Send custom file to oblivion
+(setq custom-file (make-temp-file "emacs-custom-"))
+
 ;; Resolve symlinks when opening files, so that any operations are conducted
 ;; from the file's true directory (like `find-file').
 (setq find-file-visit-truename t
@@ -178,6 +181,19 @@ the unwritable tidbits."
 ;; Multiple Cursors Emacs
 (use-package multiple-cursors
   :ensure t)
+
+;; Which-key
+(use-package which-key
+  :defer 1
+  :ensure t
+  :init
+  (general-setq which-key-idle-delay 0.3)
+  :config
+  (general-setq which-key-side-window-location 'left
+                which-key-sort-order 'which-key-prefix-then-key-order
+                which-key-sort-uppercase-first nil
+                which-key-max-display-columns 5)
+  (which-key-mode))
 
 ;;; Environment
 (use-package exec-path-from-shell

@@ -21,8 +21,18 @@
 ;;; UI Setup
 (require 'init-ui)
 
+;;; General
+(require 'init-general)
+(elpaca-wait)
+
+;; ;;; Evil
+(require 'init-evil)
+
 ;;; Editor Setup
 (require 'init-editor)
+
+;;; Projectile
+(require 'init-projectile)
 
 ;;; Version Control Setup
 (require 'init-vcs)
