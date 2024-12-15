@@ -75,7 +75,7 @@
 
 ;; Only indent the line when at BOL or in a line's indentation. Anywhere else,
 ;; insert literal indentation.
-(setq-default tab-always-indent nil)
+(setq-default tab-always-indent 'complete)
 
 ;; Make `tabify' and `untabify' only affect indentation. Not tabs/spaces in the
 ;; middle of a line.
@@ -135,8 +135,7 @@
 
 (use-package savehist
   ;; persist variables across sessions
-  :defer
-  :hook (after-init . savehist-mode)
+  :hook (emacs-startup . savehist-mode)
   :custom (savehist-file (concat shl--cache-dir "savehist"))
   :config
   (setq savehist-save-minibuffer-history t
@@ -187,13 +186,16 @@ the unwritable tidbits."
   :defer 1
   :ensure t
   :init
-  (general-setq which-key-idle-delay 0.3)
+  (setq which-key-idle-delay 0.3)
   :config
-  (general-setq which-key-side-window-location 'left
-                which-key-sort-order 'which-key-prefix-then-key-order
-                which-key-sort-uppercase-first nil
-                which-key-max-display-columns 5)
+  (setq which-key-side-window-location 'left
+        which-key-sort-order 'which-key-prefix-then-key-order
+        which-key-sort-uppercase-first nil
+        which-key-max-display-columns 5)
   (which-key-mode))
+
+;; Colorful Compilation
+(add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
 
 ;;; Environment
 (use-package exec-path-from-shell

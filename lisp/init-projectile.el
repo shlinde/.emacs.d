@@ -8,20 +8,21 @@
 (use-package projectile
   :ensure t
   :init
-  (setopt projectile-mode-line nil)
-  (projectile-global-mode)
-  (setq projectile-project-root-files-bottom-up
-        '(".git" ".projectile"))
-  (setq projectile-completion-system 'auto)
-  (setq projectile-indexing-method 'alien)
-  (setq projectile-enable-caching nil)
-  (setq projectile-verbose nil)
-  (setq projectile-do-log nil)
-  (setq projectile-switch-project-action
+  (setq projectile-mode-line nil)
+  (setq projectile-enable-caching t
+        projectile-completion-system 'auto
+        projectile-project-search-path '("~/data/source" "~/data/resources/code-reference")
+        projectile-project-root-files-bottom-up
+        '(".git" ".projectile")
+        projectile-completion-system 'auto
+        projectile-verbose nil
+        projectile-do-log nil
+        projectile-switch-project-action
         (lambda ()
           (dired (projectile-project-root))))
 
-  (general-spc "p" #'projectile-command-map))
+  (projectile-global-mode)
+  (global-set-key (kbd "C-x p") #'projectile-command-map))
 
 
 (provide 'init-projectile)

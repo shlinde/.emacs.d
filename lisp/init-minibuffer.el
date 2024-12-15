@@ -120,6 +120,16 @@
          :map project-prefix-map
          ("b" . consult-project-buffer))
   :config
+  (defun shl-consult-fd-find (&optional dir initial)
+    "Run `consult-find' using fd"
+    (interactive "P")
+    (let ((dir (or dir (ignore-errors (projectile-project-root)) default-directory))
+          (consult-find-command
+           (concat "fd --hidden --no-ignore --exclude .git --color=never "
+                   "--full-path ARG OPTS")))
+      (consult-find dir initial)))
+  (global-set-key (kbd "C-x f") #'shl-consult-fd-find)
+
   (setq consult-narrow-key "<")
   (setq consult-line-numbers-widen t)
   (setq consult-preview-key 'any)

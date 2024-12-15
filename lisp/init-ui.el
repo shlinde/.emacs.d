@@ -7,7 +7,6 @@
 
 ;;; Theme
 (use-package modus-themes
-  :disabled
   :ensure t
   :demand t
   :config
@@ -28,16 +27,38 @@
 	'((1 . (rainbow overline background 1.4))
           (2 . (rainbow background 1.3))
           (3 . (rainbow bold 1.2))
-          (t . (semilight 1.1)))))
-  ;; (modus-themes-select 'modus-vivendi-tinted))
+          (t . (semilight 1.1))))
+  (modus-themes-select 'modus-vivendi))
+
+(use-package ef-themes
+  :disabled
+  :ensure t
+  :demand t
+  :config
+  (setq ef-themes-mixed-fonts t
+        ef-themes-variable-pitch-ui t)
+  (defun shl--ef-themes-mode-line ()
+    "Tweak the style of the mode lines."
+    (ef-themes-with-colors
+     (custom-set-faces
+      `(mode-line ((,c :background ,bg-active :foreground ,fg-main :box (:line-width 1 :color ,fg-dim))))
+      `(mode-line-inactive ((,c :box (:line-width 1 :color ,bg-active)))))))
+
+  (add-hook 'ef-themes-post-load-hook #'shl--ef-themes-mode-line)
+
+  ;; Disable all other themes to avoid awkward blending:
+  (mapc #'disable-theme custom-enabled-themes)
+
+  (ef-themes-select 'ef-autumn))
 
 (use-package doom-themes
   :disabled
   :ensure t
   :demand t
-  :config (load-theme 'doom-zenburn :no-confirm))
+  :config (load-theme 'doom-tokyo-night :no-confirm))
 
 (use-package zenburn-theme
+  :disabled
   :ensure t
   :demand t
   :config
@@ -77,7 +98,7 @@
            :default-weight medium
            :default-height 120
            :bold-weight extrabold
-           :default-family "Iosevka Comfy"
+           :default-family "ZedMono Nerd Font"
            :variable-pitch-family "Iosevka Comfy Motion")
           (medium-light
            :default-weight semilight

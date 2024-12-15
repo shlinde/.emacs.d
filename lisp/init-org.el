@@ -47,10 +47,6 @@
 ;;; Configuration
 (use-package org
   :ensure t
-  :general (general-spc
-             "c" #'org-capture
-             "l" #'org-store-link
-             "a" #'org-agenda)
   :bind (:map global-map
          ("C-c l" . org-store-link)
          ("C-c o" . org-open-at-point-global)
@@ -72,6 +68,26 @@
            "* TODO %?\n%U\n")
           ("n" "Task" entry (file shl-notes-file)
            "* %?\n%U\n%i\n\n"))))
+
+
+;;; Babel
+(use-package org
+  :ensure nil
+  :config
+  (setopt org-confirm-babel-evaluate nil
+          org-src-window-setup 'current-window
+          org-edit-src-persistent-message nil
+          org-src-fontify-natively t
+          org-src-preserve-indentation t
+          org-src-tab-acts-natively t
+          org-edit-src-content-indentation 0))
+
+;;; UI
+(use-package org-modern
+  :ensure t
+  :config
+  (with-eval-after-load 'org (global-org-modern-mode)))
+  
 
 (provide 'init-org)
 ;;; init-org.el ends here

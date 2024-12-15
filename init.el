@@ -21,24 +21,34 @@
 ;;; UI Setup
 (require 'init-ui)
 
-;;; General
-(require 'init-general)
-(elpaca-wait)
+;; ;;; General
+;; (require 'init-general)
+;; (elpaca-wait)
 
-;; ;;; Evil
-(require 'init-evil)
+;; ;; ;;; Evil
+;; (require 'init-evil)
 
 ;;; Editor Setup
 (require 'init-editor)
 
+;;; Dired Setup
+(require 'init-dired)
+
 ;;; Projectile
 (require 'init-projectile)
+
 
 ;;; Version Control Setup
 (require 'init-vcs)
 
 ;;; Setup Minibuffer
 (require 'init-minibuffer)
+
+;;; Completion
+(require 'init-lsp)
+
+;;; Completion
+(require 'init-completion)
 
 ;;; Setup Org
 (require 'init-org)
@@ -48,6 +58,12 @@
 
 ;;; Python
 (require 'init-python)
+
+;;; Zig
+(require 'init-zig)
+
+;;; Rust
+(require 'init-rust)
 
 ;;; Setup Hydra
 (require 'init-hydra)

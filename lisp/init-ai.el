@@ -13,7 +13,7 @@
   :bind (("C-c i" . gptel-menu)
 	     ("C-c I" . gptel-send))
   :config
-
+  (setq gptel-default-mode 'org-mode)
   (setq gptel-model 'claude-3-haiku-20240307
         gptel-backend (gptel-make-anthropic "Claude"          ;Any name you want
                         :stream t                             ;Streaming responses
