@@ -1,4 +1,4 @@
-;;; init-core.el --- Core Settings and Helpers -*- lexical-binding: t; -*-
+ ;;; init-core.el --- Core Settings and Helpers -*- lexical-binding: t; -*-
 ;;;
 ;;; Author: Sebastian Hempel Linde <sebastian@hempellinde.com>
 ;;;

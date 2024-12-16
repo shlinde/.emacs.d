@@ -1,0 +1,10 @@
+;; ~/.config/emacs/templates
+
+python-mode
+
+(api-base "    def " p "(self) -> httpx.Response\n        ...")
+
+;; Local Variables:
+;; mode: lisp-data
+;; outline-regexp: "[a-z]"
+;; End:

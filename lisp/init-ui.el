@@ -86,13 +86,13 @@
            :default-weight medium
            :default-height 110
            :bold-weight extrabold
-           :default-family "Office Code Pro"
+           :default-family "ZedMono Nerd Font"
            :variable-pitch-family "Iosevka Comfy Motion")
           (regular-light 
            :default-weight semilight
            :default-height 110
            :bold-weight extrabold
-           :default-family "Iosevka Comfy"
+           :default-family "ZedMono Nerd Font"
            :variable-pitch-family "Iosevka Comfy Motion")
           (medium-dark
            :default-weight medium
@@ -104,10 +104,38 @@
            :default-weight semilight
            :default-height 120
            :bold-weight extrabold
-           :default-family "Iosevka Comfy"
+           :default-family "ZedMono Nerd Font"
            :variable-pitch-family "Iosevka Comfy Motion")))
   (with-eval-after-load 'pulsar
     (add-hook 'fontaine-set-preset-hook #'pulsar-pulse-line)))
+
+;; Ligatures
+;; This assumes you've installed the package via MELPA.
+(use-package ligature
+  :ensure t
+  :config
+  ;; Enable the "www" ligature in every possible major mode
+  (ligature-set-ligatures 't '("www"))
+  ;; Enable traditional ligature support in eww-mode, if the
+  ;; `variable-pitch' face supports it
+  (ligature-set-ligatures 'eww-mode '("ff" "fi" "ffi"))
+  ;; Enable all Cascadia Code ligatures in programming modes
+  (ligature-set-ligatures 'prog-mode '("|||>" "<|||" "<==>" "<!--" "####" "~~>" "***" "||=" "||>"
+                                       ":::" "::=" "=:=" "===" "==>" "=!=" "=>>" "=<<" "=/=" "!=="
+                                       "!!." ">=>" ">>=" ">>>" ">>-" ">->" "->>" "-->" "---" "-<<"
+                                       "<~~" "<~>" "<*>" "<||" "<|>" "<$>" "<==" "<=>" "<=<" "<->"
+                                       "<--" "<-<" "<<=" "<<-" "<<<" "<+>" "</>" "###" "#_(" "..<"
+                                       "..." "+++" "/==" "///" "_|_" "www" "&&" "^=" "~~" "~@" "~="
+                                       "~>" "~-" "**" "*>" "*/" "||" "|}" "|]" "|=" "|>" "|-" "{|"
+                                       "[|" "]#" "::" ":=" ":>" ":<" "$>" "==" "=>" "!=" "!!" ">:"
+                                       ">=" ">>" ">-" "-~" "-|" "->" "--" "-<" "<~" "<*" "<|" "<:"
+                                       "<$" "<=" "<>" "<-" "<<" "<+" "</" "#{" "#[" "#:" "#=" "#!"
+                                       "##" "#(" "#?" "#_" "%%" ".=" ".-" ".." ".?" "+>" "++" "?:"
+                                       "?=" "?." "??" ";;" "/*" "/=" "/>" "//" "__" "~~" "(*" "*)"
+                                       "\\\\" "://"))
+  ;; Enables ligature checks globally in all buffers. You can also do it
+  ;; per mode with `ligature-mode'.
+  (global-ligature-mode t))
 
 ;;; Modeline
 (use-package time

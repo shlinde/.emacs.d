@@ -26,9 +26,9 @@
   :hook (python-base-mode . shl-python-hook))
 
 
-;; (use-package lsp-pyright
-;;   :ensure t
-;;   :custom (lsp-pyright-langserver-command "basedpyright")) ;; or basedpyright
+(use-package lsp-pyright
+  :ensure t
+  :custom (lsp-pyright-langserver-command "basedpyright")) ;; or basedpyright
 
 (provide 'init-python)
 ;;; init-python.el ends here
