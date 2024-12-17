@@ -172,6 +172,10 @@ the unwritable tidbits."
   :hook (after-init . save-place-mode)
   :custom (save-place-file (concat shl--cache-dir "saveplace")))
 
+(use-package subword
+  :ensure nil
+  :hook (after-init . global-subword-mode))
+
 ;; Expand Region
 (use-package expand-region
   :ensure t

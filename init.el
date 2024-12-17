@@ -68,5 +68,8 @@
 ;;; Setup Hydra
 (require 'init-hydra)
 
+;;; Setup Terminal
+(require 'init-terminal)
+
 (provide 'init)
 ;;; init.el ends here

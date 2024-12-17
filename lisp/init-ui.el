@@ -86,25 +86,25 @@
            :default-weight medium
            :default-height 110
            :bold-weight extrabold
-           :default-family "ZedMono Nerd Font"
+           :default-family "Iosevka Comfy"
            :variable-pitch-family "Iosevka Comfy Motion")
           (regular-light 
            :default-weight semilight
            :default-height 110
            :bold-weight extrabold
-           :default-family "ZedMono Nerd Font"
+           :default-family "Iosevka Comfy"
            :variable-pitch-family "Iosevka Comfy Motion")
           (medium-dark
            :default-weight medium
            :default-height 120
            :bold-weight extrabold
-           :default-family "ZedMono Nerd Font"
+           :default-family "Iosevka Comfy"
            :variable-pitch-family "Iosevka Comfy Motion")
           (medium-light
            :default-weight semilight
            :default-height 120
            :bold-weight extrabold
-           :default-family "ZedMono Nerd Font"
+           :default-family "Iosevka Comfy"
            :variable-pitch-family "Iosevka Comfy Motion")))
   (with-eval-after-load 'pulsar
     (add-hook 'fontaine-set-preset-hook #'pulsar-pulse-line)))
