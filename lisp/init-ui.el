@@ -28,7 +28,7 @@
           (2 . (rainbow background 1.3))
           (3 . (rainbow bold 1.2))
           (t . (semilight 1.1))))
-  (modus-themes-select 'modus-vivendi))
+  (modus-themes-select 'modus-operandi-deuteranopia))
 
 (use-package ef-themes
   :disabled
@@ -74,7 +74,7 @@
   :ensure t
   :if (display-graphic-p)
   :hook ((emacs-startup . (lambda ()
-                        (fontaine-set-preset 'regular-dark))))
+                        (fontaine-set-preset 'regular-light))))
   :bind (("C-c f" . fontaine-set-preset)
          ("C-c F" . fontaine-toggle-preset))
   :config
