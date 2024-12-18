@@ -9,6 +9,7 @@
 ;;; Completion
 (use-package corfu
   :ensure (corfu :files (:defaults "extensions/*.el"))
+  :hook (after-init . global-corfu-mode)
   :config
   (setopt corfu-auto t
           corfu-auto-delay 0.15

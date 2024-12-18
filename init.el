@@ -31,12 +31,14 @@
 ;;; Editor Setup
 (require 'init-editor)
 
+;;; Tree-sitter
+(require 'init-treesitter)
+
 ;;; Dired Setup
 (require 'init-dired)
 
 ;;; Projectile
 (require 'init-projectile)
-
 
 ;;; Version Control Setup
 (require 'init-vcs)

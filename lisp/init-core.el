@@ -5,6 +5,10 @@
 ;;; Commentary:
 ;;; Code:
 
+;;; Configuration
+(defvar shl-evil-p nil
+  "Use Evil keybindings.")
+
 ;;; Environment
 ;;  Helpers for knowing which environment we are in
 (defconst env-graphic-p (display-graphic-p))
