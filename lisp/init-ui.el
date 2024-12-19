@@ -7,6 +7,7 @@
 
 ;;; Theme
 (use-package modus-themes
+  :disabled
   :ensure t
   :demand t
   :config
@@ -52,10 +53,9 @@
   (ef-themes-select 'ef-autumn))
 
 (use-package doom-themes
-  :disabled
   :ensure t
   :demand t
-  :config (load-theme 'doom-tokyo-night :no-confirm))
+  :config (load-theme 'doom-dark+ :no-confirm))
 
 (use-package zenburn-theme
   :disabled
@@ -86,7 +86,7 @@
            :default-weight medium
            :default-height 110
            :bold-weight extrabold
-           :default-family "Iosevka Comfy"
+           :default-family "ZedMono Nerd Font"
            :variable-pitch-family "Iosevka Comfy Motion")
           (regular-light 
            :default-weight semilight
@@ -141,6 +141,11 @@
 (use-package time
   :ensure nil
   :hook (after-init . display-time-mode))
+
+(use-package doom-modeline
+  :ensure t
+  :hook (after-init . doom-modeline-mode))
+  
 
 
 ;;; General User Experience
