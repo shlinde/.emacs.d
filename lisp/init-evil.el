@@ -59,6 +59,15 @@
 (general-spc "pv" #'project-vc-dir)
 (general-spc "px" #'project-execute-extended-command)
 
+;; Git
+(general-spc "gg" #'magit-status)
+(general-spc "gs" #'magit-stage-file)
+(general-spc "gc" #'magit-commit)
+
+;; Evaluate
+(general-spc "er" #'eval-region)
+
+
 (general-with 'evil
   ;; I always disliked this behavior in vim
   (general-setq evil-move-cursor-back nil
