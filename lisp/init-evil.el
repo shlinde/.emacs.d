@@ -67,6 +67,14 @@
 ;; Evaluate
 (general-spc "er" #'eval-region)
 
+;; Org / Org-Roam
+(general-spc "nl" #'org-roam-buffer-toggle)
+(general-spc "nf" #'org-roam-node-find)
+(general-spc "ng" #'org-roam-graph)
+(general-spc "ni" #'org-roam-node-insert)
+(general-spc "nc" #'org-roam-capture)
+(general-spc "nj" #'org-roam-dailies-capture-today)
+
 
 (general-with 'evil
   ;; I always disliked this behavior in vim

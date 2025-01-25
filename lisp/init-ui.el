@@ -53,10 +53,18 @@
   (ef-themes-select 'ef-dark))
 
 (use-package doom-themes
+  :disabled
   :ensure t
   :demand t
   :config
   (load-theme 'doom-monokai-pro :no-confirm))
+
+(use-package gruber-darker-theme
+  :ensure t
+  :demand
+  :config
+  (load-theme 'gruber-darker :no-confirm))
+  
 
 (use-package zenburn-theme
   :disabled

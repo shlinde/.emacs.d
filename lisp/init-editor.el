@@ -201,6 +201,10 @@ the unwritable tidbits."
         which-key-max-display-columns 5)
   (which-key-mode))
 
+(use-package hl-todo
+  :ensure t
+  :config (global-hl-todo-mode))
+
 ;; Colorful Compilation
 (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
 
@@ -208,6 +212,11 @@ the unwritable tidbits."
 (use-package exec-path-from-shell
   :ensure t
   :hook (after-init . exec-path-from-shell-initialize))
+
+
+(use-package pdf-tools
+  :ensure t
+  :init (pdf-tools-install))
 
 
 (provide 'init-editor)
