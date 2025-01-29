@@ -180,6 +180,10 @@ the unwritable tidbits."
   :ensure nil
   :hook (after-init . global-subword-mode))
 
+(use-package window
+  :ensure nil
+  :bind (("M-o" . other-window)))
+
 ;; Expand Region
 (use-package expand-region
   :ensure t
