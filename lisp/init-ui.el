@@ -7,7 +7,6 @@
 
 ;;; Theme
 (use-package modus-themes
-  :disabled
   :ensure t
   :demand t
   :config
@@ -50,7 +49,7 @@
   ;; Disable all other themes to avoid awkward blending:
   (mapc #'disable-theme custom-enabled-themes)
 
-  (ef-themes-select 'ef-dark))
+  (ef-themes-select 'ef-dream))
 
 (use-package doom-themes
   :disabled
@@ -60,6 +59,7 @@
   (load-theme 'doom-monokai-pro :no-confirm))
 
 (use-package gruber-darker-theme
+  :disabled
   :ensure t
   :demand
   :config
@@ -83,7 +83,7 @@
   :ensure t
   :if (display-graphic-p)
   :hook ((emacs-startup . (lambda ()
-                        (fontaine-set-preset 'regular-dark))))
+                        (fontaine-set-preset 'regular-light))))
   :bind (("C-c f" . fontaine-set-preset)
          ("C-c F" . fontaine-toggle-preset))
   :config
@@ -95,7 +95,7 @@
            :default-weight medium
            :default-height 110
            :bold-weight extrabold
-           :default-family "ZedMono Nerd Font"
+           :default-family "Iosevka Comfy"
            :variable-pitch-family "Iosevka Comfy Motion")
           (regular-light 
            :default-weight semilight
@@ -315,6 +315,28 @@
 (use-package nerd-icons-dired
   :ensure t
   :hook (dired-mode . nerd-icons-dired-mode))
+
+(use-package spacious-padding
+  :ensure t
+  :hook ((emacs-startup . spacious-padding-mode))
+  :config
+  ;; These are the default values, but I keep them here for visibility.
+  (setq spacious-padding-widths
+        '( :internal-border-width 15
+           :header-line-width 4
+           :mode-line-width 6
+           :tab-width 4
+           :right-divider-width 30
+           :scroll-bar-width 8
+           :fringe-width 8))
+
+  ;; Read the doc string of `spacious-padding-subtle-mode-line' as it
+  ;; is very flexible and provides several examples.
+  (setq spacious-padding-subtle-mode-line
+        `( :mode-line-active 'default
+           :mode-line-inactive vertical-border))
+
+  (spacious-padding-mode 1))
 
 (provide 'init-ui)
 ;;; init-ui.el ends here

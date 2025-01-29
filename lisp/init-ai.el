@@ -5,6 +5,10 @@
 ;;; Commentary:
 ;;; Code:
 
+;;
+(require 'init-evil)
+(require 'init-general)
+
 ;; gptel
 (use-package gptel
   :ensure (:host github :protocol ssh
@@ -19,7 +23,13 @@
                         :stream t                             ;Streaming responses
                         :key (getenv "ANTHROPIC_API_KEY"))))
 
-	
+
+
+(use-package aider
+  :ensure (:host github :repo "tninja/aider.el" :files ("aider.el"))
+  :config
+  (setq aider-args '("--model" "anthropic/claude-3-5-sonnet-20241022")))
+
 
 (provide 'init-ai)
 ;;; init-ai.el ends here
