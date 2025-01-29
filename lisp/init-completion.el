@@ -8,6 +8,7 @@
 
 ;;; Completion
 (use-package corfu
+  :disabled
   :ensure (corfu :files (:defaults "extensions/*.el"))
   :hook (after-init . global-corfu-mode)
   :config
@@ -35,6 +36,7 @@
 ;;; Templates
 ;; Configure Tempel
 (use-package tempel
+  :disabled
   :ensure t
   ;; Require trigger prefix before template name when completing.
   ;; :custom
@@ -72,7 +74,31 @@
 ;; Optional: Add tempel-collection.
 ;; The package is young and doesn't have comprehensive coverage.
 (use-package tempel-collection
+  :disabled
   :ensure t)
+
+;;; Company
+(use-package company
+  :ensure t
+  :after lsp-mode
+  :hook (prog-mode . company-mode)
+  :custom
+  (company-minimum-prefix-length 1)
+  (company-idle-delay 0.1)
+  (company-selection-wrap-around t)
+  (copmany-tooltip-align-annotations t)
+  (company-require-match nil)
+  :config
+  (with-eval-after-load 'evil
+    (define-key company-active-map (kbd "C-y") #'company-complete-selection)
+    (define-key company-active-map (kbd "RET") nil)))
+
+(use-package company-box
+  :ensure t
+  :hook (company-mode . company-box-mode)
+  :custom
+  (company-box-doc-enable t)
+  (company-box-scrollbar t))
 
 (provide 'init-completion)
 ;;; init-completion.el ends herec

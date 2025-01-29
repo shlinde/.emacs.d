@@ -12,6 +12,13 @@
       undo-strong-limit 8000000
       undo-outer-limit 8000000)
 
+(use-package undo-fu
+  :ensure t
+  :config
+  (define-key evil-normal-state-map "u" 'undo-fu-only-undo)
+  (define-key evil-normal-state-map "U" 'undo-fu-only-redo)
+  (define-key evil-normal-state-map (kbd "C-r") 'undo-fu-only-redo))
+
 ;;; Evil Core
 (use-package evil
   :ensure t
