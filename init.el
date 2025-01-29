@@ -25,8 +25,8 @@
 (require 'init-general)
 (elpaca-wait)
 
-;; ;; ;;; Evil
-(require 'init-evil)
+;;; Evil
+;; (require 'init-evil)
 
 ;;; Editor Setup
 (require 'init-editor)

@@ -162,5 +162,13 @@
   :ensure t
   :config (marginalia-mode))
 
+(use-package embark
+  :ensure t
+  :bind (("C-." . embark-act)))
+
+(use-package embark-consult
+  :after embark
+  :ensure t)
+
 (provide 'init-minibuffer)
 ;;; init-minibuffer.el ends here

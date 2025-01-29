@@ -27,11 +27,10 @@
 	'((1 . (rainbow overline background 1.4))
           (2 . (rainbow background 1.3))
           (3 . (rainbow bold 1.2))
-          (t . (semilight 1.1))))
-  (modus-themes-select 'modus-operandi-deuteranopia))
+          (t . (semilight 1.1)))))
+  ;; (modus-themes-select 'modus-operandi-deuteranopia))
 
 (use-package ef-themes
-  :disabled
   :ensure t
   :demand t
   :config
@@ -100,7 +99,7 @@
           (regular-light 
            :default-weight semilight
            :default-height 110
-           :bold-weight extrabold
+           :bold-weight bold
            :default-family "Iosevka Comfy"
            :variable-pitch-family "Iosevka Comfy Motion")
           (medium-dark

@@ -5,7 +5,7 @@
 ;;; Commentary:
 ;;; Code:
 
-(require 'init-evil)
+;; (require 'init-evil)
 
 (use-package lsp-mode
   :ensure t
@@ -25,12 +25,12 @@
   (lsp-enable-file-watchers nil)
 
   :config
-  (evil-define-key 'normal lsp-mode-map
-    "gd" 'lsp-find-definition
-    "gr" 'lsp-find-references
-    ;; "gi" 'lsp-find-implementation
-    ;; "gt" 'lsp-find-type-definition
-    "K" 'lsp-describe-thing-at-point)
+  ;; (evil-define-key 'normal lsp-mode-map
+  ;;   "gd" 'lsp-find-definition
+  ;;   "gr" 'lsp-find-references
+  ;;   ;; "gi" 'lsp-find-implementation
+  ;;   ;; "gt" 'lsp-find-type-definition
+  ;;   "K" 'lsp-describe-thing-at-point)
 
   (add-hook 'before-save-hook #'lsp-format-buffer nil t))
 
@@ -42,8 +42,6 @@
   ;; Sideline configuration
   (lsp-ui-sideline-enable t)
   (lsp-ui-sideline-show-hover t)
-  (lsp-ui-sideline-show-diagnostics t)
-  (lsp-ui-sideline-show-code-actions t)
 
   ;; Doc configuration
   (lsp-ui-doc-enable t)
@@ -55,13 +53,13 @@
 
   ;; Peek configuration
   (lsp-ui-peek-enable t)
-  (lsp-ui-peek-show-directory t)
+  (lsp-ui-peek-show-directory t))
 
-  :config
-  (evil-define-key 'normal lsp-ui-mode-map
-    "gh" 'lsp-ui-doc-show
-    "gl" 'lsp-ui-peek-find-references
-    "gL" 'lsp-ui-peek-find-definitions))
+  ;; :config
+  ;; (evil-define-key 'normal lsp-ui-mode-map
+  ;;   "gh" 'lsp-ui-doc-show
+  ;;   "gl" 'lsp-ui-peek-find-references
+  ;;   "gL" 'lsp-ui-peek-find-definitions))
 
 
 (provide 'init-lsp)

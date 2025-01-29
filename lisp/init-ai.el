@@ -6,8 +6,8 @@
 ;;; Code:
 
 ;;
-(require 'init-evil)
-(require 'init-general)
+;; (require 'init-evil)
+;; (require 'init-general)
 
 ;; gptel
 (use-package gptel
