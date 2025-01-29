@@ -36,6 +36,7 @@
 
 
 ;;; Keybinds
+(general-spc "a" 'aider-transient-menu)
 
 ;; 
 (general-spc "ff" #'find-file)
