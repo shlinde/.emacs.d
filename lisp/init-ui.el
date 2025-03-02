@@ -7,25 +7,24 @@
 
 ;;; Theme
 (use-package modus-themes
-  :disabled
   :ensure t
   :demand t
   :config
   (setq modus-themes-mode-line '(accented borderless)
-	modus-themes-bold-constructs t
-	modus-themes-italic-constructs t
-	modus-themes-fringes 'subtle
-	modus-themes-tabs-accented t
-	modus-themes-paren-match '(bold intense)
-	modus-themes-prompts '(bold intense)
-	modus-themes-completions
+	    modus-themes-bold-constructs t
+	    modus-themes-italic-constructs t
+	    modus-themes-fringes 'subtle
+	    modus-themes-tabs-accented t
+	    modus-themes-paren-match '(bold intense)
+	    modus-themes-prompts '(bold intense)
+	    modus-themes-completions
         (quote ((matches . (extrabold underline))
                 (selection . (semibold italic))))
-	modus-themes-org-blocks 'tinted-background
-	modus-themes-scale-headings t
-	modus-themes-region '(bg-only)
-	modus-themes-headings
-	'((1 . (rainbow overline background 1.4))
+	    modus-themes-org-blocks 'tinted-background
+	    modus-themes-scale-headings t
+	    modus-themes-region '(bg-only)
+	    modus-themes-headings
+	    '((1 . (rainbow overline background 1.4))
           (2 . (rainbow background 1.3))
           (3 . (rainbow bold 1.2))
           (t . (semilight 1.1))))
@@ -49,32 +48,7 @@
   ;; Disable all other themes to avoid awkward blending:
   (mapc #'disable-theme custom-enabled-themes)
 
-  (ef-themes-select 'ef-summer))
-
-(use-package doom-themes
-  :disabled
-  :ensure t
-  :demand t
-  :config
-  (load-theme 'doom-monokai-pro :no-confirm))
-
-(use-package gruber-darker-theme
-  :disabled
-  :ensure t
-  :demand
-  :config
-  (load-theme 'gruber-darker :no-confirm))
-  
-
-(use-package zenburn-theme
-  :disabled
-  :ensure t
-  :demand t
-  :config
-  (setq zenburn-use-variable-pitch t ; use variable-pitch fonts for some headings and titles
-        zenburn-scale-org-headlines t ; scale headings in org-mode
-        zenburn-scale-outline-headlines t) ; scale headings in outline-mode
-  (load-theme 'zenburn :no-confirm))
+  (ef-themes-select 'ef-autumn))
 
 ;;; Font
 ;;;; Fontaine (font configurations)
@@ -82,11 +56,12 @@
 (use-package fontaine
   :ensure t
   :if (display-graphic-p)
-  :hook ((emacs-startup . (lambda ()
+  :hook ((after-init . fontaine-mode)
+         (after-init . (lambda ()
                         (fontaine-set-preset 'regular-dark))))
   :bind (("C-c f" . fontaine-set-preset)
          ("C-c F" . fontaine-toggle-preset))
-  :config
+  :init
   ;; This is defined in Emacs C code: it belongs to font settings.
   (setq x-underline-at-descent-line nil)
 
@@ -95,26 +70,26 @@
            :default-weight medium
            :default-height 110
            :bold-weight extrabold
-           :default-family "JetBrainsMono Nerd Font"
-           :variable-pitch-family "Iosevka Comfy Motion")
+           :default-family "Aporetic Sans Mono"
+           :variable-pitch-family "Aporetic Sans")
           (regular-light 
            :default-weight semilight
            :default-height 110
            :bold-weight bold
-           :default-family "JetBrainsMono Nerd Font"
-           :variable-pitch-family "Iosevka Comfy Motion")
+           :default-family "Aporetic Sans Mono"
+           :variable-pitch-family "Aporetic Sans")
           (medium-dark
            :default-weight medium
            :default-height 120
            :bold-weight extrabold
-           :default-family "Iosevka Comfy"
-           :variable-pitch-family "Iosevka Comfy Motion")
+           :default-family "Aporetic Sans Mono"
+           :variable-pitch-family "Aporetic Sans")
           (medium-light
            :default-weight semilight
            :default-height 120
            :bold-weight extrabold
-           :default-family "Iosevka Comfy"
-           :variable-pitch-family "Iosevka Comfy Motion")))
+           :default-family "Aporetic Sans Mono"
+           :variable-pitch-family "Aporetic Sans")))
   (with-eval-after-load 'pulsar
     (add-hook 'fontaine-set-preset-hook #'pulsar-pulse-line)))
 
