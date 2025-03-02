@@ -24,12 +24,20 @@
                         :key (getenv "ANTHROPIC_API_KEY"))))
 
 
-
-(use-package aider
-  :ensure (:host github :repo "tninja/aider.el" :files ("aider.el"))
+(use-package aidermacs
+  :ensure (:host github :repo "MatthewZMD/aidermacs" :files ("*.el"))
   :config
-  (setq aider-args '("--model" "anthropic/claude-3-5-sonnet-20241022")))
-
+  (setq aidermacs-default-model "sonnet")
+  (global-set-key (kbd "C-c a") 'aidermacs-transient-menu)
+  ; Enable minor mode for Aider files
+  (aidermacs-setup-minor-mode)
+  ; See the Configuration section below
+  (setq aidermacs-auto-commits t)
+  (setq aidermacs-use-architect-mode t)
+  ;; Use vterm backend (default is comint)
+  (setq aidermacs-backend 'vterm)
+  ; Ensure emacs can access *_API_KEY through .bashrc or setenv
+  (setenv "ANTHROPIC_API_KEY" (getenv "ANTHROPIC_API_KEY")))
 
 (provide 'init-ai)
 ;;; init-ai.el ends here

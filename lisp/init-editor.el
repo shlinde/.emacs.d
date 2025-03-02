@@ -215,13 +215,27 @@ the unwritable tidbits."
 ;;; Environment
 (use-package exec-path-from-shell
   :ensure t
-  :hook (after-init . exec-path-from-shell-initialize))
+  :hook (emacs-startup . exec-path-from-shell-initialize)
+  :config (exec-path-from-shell-copy-env "ANTROPIC_API_KEY"))
 
 
 (use-package pdf-tools
   :ensure t
   :init (pdf-tools-install))
 
+(use-package eww
+  :ensure nil
+  :config
+  (setq browse-url-browser-function 'eww-browse-url
+      shr-use-colors nil
+      shr-bullet "• "
+      shr-folding-mode t
+      eww-search-prefix "https://html.duckduckgo.com/html?q="
+      url-privacy-level '(email agent cookies lastloc)
+      browse-url-secondary-browser-function 'browse-url-firefox))
+
+(use-package vterm
+  :ensure t)
 
 (provide 'init-editor)
 ;;; init-core.el ends here

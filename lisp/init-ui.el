@@ -7,6 +7,7 @@
 
 ;;; Theme
 (use-package modus-themes
+  :disabled
   :ensure t
   :demand t
   :config
@@ -27,8 +28,8 @@
 	'((1 . (rainbow overline background 1.4))
           (2 . (rainbow background 1.3))
           (3 . (rainbow bold 1.2))
-          (t . (semilight 1.1)))))
-  ;; (modus-themes-select 'modus-operandi-deuteranopia))
+          (t . (semilight 1.1))))
+  (modus-themes-select 'modus-vivendi-deuteranopia))
 
 (use-package ef-themes
   :ensure t
@@ -48,7 +49,7 @@
   ;; Disable all other themes to avoid awkward blending:
   (mapc #'disable-theme custom-enabled-themes)
 
-  (ef-themes-select 'ef-dream))
+  (ef-themes-select 'ef-summer))
 
 (use-package doom-themes
   :disabled
@@ -82,7 +83,7 @@
   :ensure t
   :if (display-graphic-p)
   :hook ((emacs-startup . (lambda ()
-                        (fontaine-set-preset 'regular-light))))
+                        (fontaine-set-preset 'regular-dark))))
   :bind (("C-c f" . fontaine-set-preset)
          ("C-c F" . fontaine-toggle-preset))
   :config
@@ -94,13 +95,13 @@
            :default-weight medium
            :default-height 110
            :bold-weight extrabold
-           :default-family "Iosevka Comfy"
+           :default-family "JetBrainsMono Nerd Font"
            :variable-pitch-family "Iosevka Comfy Motion")
           (regular-light 
            :default-weight semilight
            :default-height 110
            :bold-weight bold
-           :default-family "Iosevka Comfy"
+           :default-family "JetBrainsMono Nerd Font"
            :variable-pitch-family "Iosevka Comfy Motion")
           (medium-dark
            :default-weight medium
@@ -149,6 +150,10 @@
 (use-package time
   :ensure nil
   :hook (after-init . display-time-mode))
+
+(use-package battery
+  :ensure nil
+  :hook (after-init . display-battery-mode))
 
 (use-package doom-modeline
   :ensure t
