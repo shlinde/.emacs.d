@@ -8,6 +8,7 @@
 ;;
 ;; (require 'init-evil)
 ;; (require 'init-general)
+(require 'init-org)
 
 ;; gptel
 (use-package gptel
@@ -18,7 +19,7 @@
 	     ("C-c I" . gptel-send))
   :config
   (setq gptel-default-mode 'org-mode)
-  (setq gptel-model 'claude-3-haiku-20240307
+  (setq gptel-model 'claude-3-7-sonnet-20250219
         gptel-backend (gptel-make-anthropic "Claude"          ;Any name you want
                         :stream t                             ;Streaming responses
                         :key (getenv "ANTHROPIC_API_KEY"))))

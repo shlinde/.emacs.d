@@ -68,7 +68,7 @@
 (require 'init-rust)
 
 ;;; Setup Hydra
-(require 'init-hydra)
+;; (require 'init-hydra)
 
 ;;; Setup Terminal
 (require 'init-terminal)

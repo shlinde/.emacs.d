@@ -48,7 +48,7 @@
   ;; Disable all other themes to avoid awkward blending:
   (mapc #'disable-theme custom-enabled-themes)
 
-  (ef-themes-select 'ef-autumn))
+  (ef-themes-select 'ef-summer))
 
 ;;; Font
 ;;;; Fontaine (font configurations)
@@ -58,7 +58,7 @@
   :if (display-graphic-p)
   :hook ((after-init . fontaine-mode)
          (after-init . (lambda ()
-                        (fontaine-set-preset 'regular-dark))))
+                        (fontaine-set-preset 'regular-light))))
   :bind (("C-c f" . fontaine-set-preset)
          ("C-c F" . fontaine-toggle-preset))
   :init
@@ -69,11 +69,11 @@
         '((regular-dark
            :default-weight medium
            :default-height 110
-           :bold-weight extrabold
+           :bold-weight bold
            :default-family "Aporetic Sans Mono"
            :variable-pitch-family "Aporetic Sans")
           (regular-light 
-           :default-weight semilight
+           :default-weight regular
            :default-height 110
            :bold-weight bold
            :default-family "Aporetic Sans Mono"
