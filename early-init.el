@@ -18,8 +18,9 @@
 
 ;; Package initialization happens before loading `user-init-file',
 ;; but after `early-init-file'
-(setq ; package-enable-at-startup nil
-      ; package-quickstart nil
+
+(setq package-enable-at-startup nil
+      ;; package-quickstart nil
       load-prefer-newer t
       native-comp-async-report-warnings-errors nil)
 

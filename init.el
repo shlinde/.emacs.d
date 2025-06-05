@@ -4,27 +4,80 @@
 ;;; Core
 (defconst shl--cache-dir (concat user-emacs-directory ".cache/"))
 
+;;; Package Manager
+(defvar elpaca-installer-version 0.11)
+(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+                              :ref nil :depth 1 :inherit ignore
+                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                              :build (:not elpaca--activate-package)))
+(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+       (build (expand-file-name "elpaca/" elpaca-builds-directory))
+       (order (cdr elpaca-order))
+       (default-directory repo))
+  (add-to-list 'load-path (if (file-exists-p build) build repo))
+  (unless (file-exists-p repo)
+    (make-directory repo t)
+    (when (<= emacs-major-version 28) (require 'subr-x))
+    (condition-case-unless-debug err
+        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                  ,@(when-let* ((depth (plist-get order :depth)))
+                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                  ,(plist-get order :repo) ,repo))))
+                  ((zerop (call-process "git" nil buffer t "checkout"
+                                        (or (plist-get order :ref) "--"))))
+                  (emacs (concat invocation-directory invocation-name))
+                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                  ((require 'elpaca))
+                  ((elpaca-generate-autoloads "elpaca" repo)))
+            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+          (error "%s" (with-current-buffer buffer (buffer-string))))
+      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+  (unless (require 'elpaca-autoloads nil t)
+    (require 'elpaca)
+    (elpaca-generate-autoloads "elpaca" repo)
+    (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
+(add-hook 'after-init-hook #'elpaca-process-queues)
+(elpaca `(,@elpaca-order))
+
+;; Install use-package support
+(elpaca elpaca-use-package
+  ;; Enable use-package :ensure support for Elpaca.
+  (elpaca-use-package-mode))
+
 ;;; User Experience
 ;;;; UI
 ;;;;; Theme
-(use-package modus-themes
+(setq custom-safe-themes t)
+
+(use-package ef-themes
   :ensure t
-  :hook (after-init . (lambda () (load-theme 'modus-vivendi :no-confirm))))
+  :demand t
+  :hook (elpaca-after-init . (lambda () (load-theme 'ef-dream :no-confirm))))
 
 ;;;;; Fonts
 (set-face-attribute 'default nil
-		    :family "Aporetic Sans Mono"
+		    :family "RobotoMono Nerd Font"
 		    :height 110
 		    :weight 'medium)
 
 ;;;;; Modeline
 (use-package time
   :ensure nil
-  :hook (after-init . display-time-mode))
+  :hook (elpaca-after-init . display-time-mode))
 
 (use-package battery
   :ensure nil
-  :hook (after-init . display-battery-mode))
+  :hook (elpaca-after-init . display-battery-mode))
+
+(use-package doom-modeline
+  :ensure t
+  :demand t
+  :hook (elpaca-after-init . doom-modeline-mode))
 
 ;;;; Editor
 ;; Ensure keyboard repeat rate
@@ -67,7 +120,7 @@
 
 ;; Smooth scrolling
 (use-package ultra-scroll
-  :vc (:url "https://github.com/jdtsmith/ultra-scroll") ; For Emacs>=30
+  :ensure (:url "https://github.com/jdtsmith/ultra-scroll") ; For Emacs>=30
   :init
   (setq scroll-conservatively 3 ; or whatever value you prefer, since v0.4
         scroll-margin 0)        ; important: scroll-margin>0 not yet supported
@@ -156,7 +209,7 @@ the unwritable tidbits."
 ;;;; Minibuffer Completion
 (use-package vertico
   :ensure t
-  :hook (after-init . vertico-mode))
+  :hook (elpaca-after-init . vertico-mode))
 
 (use-package orderless
   :ensure t
@@ -172,6 +225,15 @@ the unwritable tidbits."
   (ansi-color-apply-on-region compilation-filter-start (point)))
 (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 
+;;; Treesitter
+(use-package treesit-auto
+  :ensure t
+  :custom
+  (treesit-auto-install 'prompt)
+  :config
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode))
+
 
 ;;;; Environment Variables
 (use-package exec-path-from-shell
@@ -180,9 +242,68 @@ the unwritable tidbits."
   :config (exec-path-from-shell-copy-env "ANTROPIC_API_KEY"))
 
 ;;; Version Control
+(use-package transient
+  :ensure t)
+
 (use-package magit
   :ensure t
   :bind (("C-x g" . magit-status)))
+
+;;; Languages
+;;;; Python
+(defun uv-activate ()
+  "Activate Python environment managed by uv based on current project directory.
+Looks for .venv directory in project root and activates the Python interpreter."
+  (interactive)
+  (let* ((project-root (project-root (project-current t)))
+         (venv-path (expand-file-name ".venv" project-root))
+         (python-path (expand-file-name
+                       (if (eq system-type 'windows-nt)
+                           "Scripts/python.exe"
+                         "bin/python")
+                       venv-path)))
+    (if (file-exists-p python-path)
+        (progn
+          ;; Set Python interpreter path
+          (setq python-shell-interpreter python-path)
+
+          ;; Update exec-path to include the venv's bin directory
+          (let ((venv-bin-dir (file-name-directory python-path)))
+            (setq exec-path (cons venv-bin-dir
+                                  (remove venv-bin-dir exec-path))))
+
+          ;; Update PATH environment variable
+          (setenv "PATH" (concat (file-name-directory python-path)
+                                 path-separator
+                                 (getenv "PATH")))
+
+          ;; Update VIRTUAL_ENV environment variable
+          (setenv "VIRTUAL_ENV" venv-path)
+
+          ;; Remove PYTHONHOME if it exists
+          (setenv "PYTHONHOME" nil)
+
+          (message "Activated UV Python environment at %s" venv-path))
+      (error "No UV Python environment found in %s" project-root))))
+
+
+;;;; Rust
+(use-package rust-mode
+  :ensure t
+  :init
+  (setq rust-mode-treesitter-derive t)
+  (add-hook 'rust-mode-hook
+            (lambda () (prettify-symbols-mode)))
+  :config
+  (setq rust-format-on-save t))
+
+;;; AI
+(use-package gptel
+  :ensure (:url "https://github.com/karthink/gptel") ; For Emacs>=30
+  :config 
+  (setq gptel-model 'o1-mini
+	gptel-backend (gptel-make-gh-copilot "Copilot")))
+	   
 
 (provide 'init)
 ;;; init.el ends here
