@@ -57,7 +57,16 @@
 (use-package ef-themes
   :ensure t
   :demand t
-  :hook (elpaca-after-init . (lambda () (load-theme 'ef-dream :no-confirm))))
+  :hook (elpaca-after-init . (lambda () (ef-themes-select 'ef-summer)))
+  :config
+  (defun shl--ef-themes-mode-line ()
+    "Tweak the style of the mode lines."
+    (ef-themes-with-colors
+      (custom-set-faces
+       `(mode-line ((,c :background ,bg-active :foreground ,fg-main :box (:line-width 1 :color ,fg-dim))))
+       `(mode-line-inactive ((,c :box (:line-width 1 :color ,bg-active)))))))
+
+  (add-hook 'ef-themes-post-load-hook #'shl--ef-themes-mode-line))
 
 ;;;;; Fonts
 (set-face-attribute 'default nil
