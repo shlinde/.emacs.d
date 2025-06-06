@@ -226,6 +226,22 @@ the unwritable tidbits."
   (completion-styles '(orderless basic))
   (completion-category-overrides '((file (styles basic partial-completion)))))
 
+(use-package marginalia
+  :ensure t
+  :bind (:map minibuffer-local-map
+              ("M-A" . marginalia-cycle)) ;; Cycle annotation styles
+  :init
+  (marginalia-mode +1))                   ;; Enable marginalia globally  
+
+(use-package avy
+  :ensure t
+  :bind (("C-:" . avy-goto-char)        ;; Jump to a specific character
+         ("C-'" . avy-goto-char-2)     ;; Jump to 2-character sequence
+         ("M-g g" . avy-goto-line))    ;; Jump to a line
+  :config
+  (setq avy-background t)              ;; Dim background while jumping
+  (setq avy-style 'pre))               ;; Use pre-jump overlay
+
 ;;; Compilation
 ;; Colorful Compilation
 (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
@@ -256,7 +272,11 @@ the unwritable tidbits."
 
 (use-package magit
   :ensure t
-  :bind (("C-x g" . magit-status)))
+  :bind (("C-x g" . magit-status)         ;; Open Magit status buffer
+         ("C-x M-g" . magit-dispatch))   ;; Open Magit's dispatcher
+  :config
+  ;; Ensure Magit doesn't open too many windows by default
+  (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
 ;;; Languages
 ;;;; Python
@@ -299,6 +319,7 @@ Looks for .venv directory in project root and activates the Python interpreter."
 ;;;; Rust
 (use-package rust-mode
   :ensure t
+  :mode "\\.rs\\'"
   :init
   (setq rust-mode-treesitter-derive t)
   (add-hook 'rust-mode-hook
@@ -311,7 +332,21 @@ Looks for .venv directory in project root and activates the Python interpreter."
   :ensure (:url "https://github.com/karthink/gptel") ; For Emacs>=30
   :config 
   (setq gptel-model 'o1-mini
-	gptel-backend (gptel-make-gh-copilot "Copilot")))
+	gptel-backend (gptel-make-gh-copilot "Copilot"))
+  (gptel-make-tool
+   :name "read_buffer"                    ; javascript-style snake_case name
+   :function (lambda (buffer)                  ; the function that will run
+               (unless (buffer-live-p (get-buffer buffer))
+		 (error "error: buffer %s is not live." buffer))
+               (with-current-buffer  buffer
+		 (buffer-substring-no-properties (point-min) (point-max))))
+   :description "return the contents of an emacs buffer"
+   :args (list '(:name "buffer"
+		       :type string            ; :type value must be a symbol
+		       :description "the name of the buffer whose contents are to be retrieved"))
+   :category "emacs")                     ; An arbitrary label for grouping
+  )
+
 	   
 
 (provide 'init)
