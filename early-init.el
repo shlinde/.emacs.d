@@ -70,6 +70,9 @@
 (setq inhibit-startup-screen t)
 (setq inhibit-startup-message t)
 
+;; Get rid of the annoying system beep.
+(setq ring-bell-function 'ignore)
+
 (setq frame-inhibit-implied-resize t)
 
 (provide 'early-init)
