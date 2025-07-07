@@ -2,3 +2,10 @@ eln-cache/
 elpa/
 auto-save-list/
 projects
+.cache/elpaca/
+history
+places.eld
+projects.eld
+recentf.eld
+transient/
+tree-sitter/
