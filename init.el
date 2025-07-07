@@ -50,28 +50,25 @@
   (elpaca-use-package-mode))
 
 ;;; User Experience
+;;;; Terminal
+;; Enable mouse-based scrolling in terminal Emacs
+(unless (display-graphic-p)
+  (xterm-mouse-mode 1)
+  ;; These are often helpful for finer control if xterm-mouse-mode alone isn't enough
+  (global-set-key (kbd "<mouse-4>") 'scroll-down-line)
+  (global-set-key (kbd "<mouse-5>") 'scroll-up-line))
+
 ;;;; UI
 ;;;;; Theme
 (setq custom-safe-themes t)
 
-(use-package ef-themes
-  :ensure t
-  :demand t
-  :hook (elpaca-after-init . (lambda () (ef-themes-select 'ef-dark)))
-  :config
-  (defun shl--ef-themes-mode-line ()
-    "Tweak the style of the mode lines."
-    (ef-themes-with-colors
-      (custom-set-faces
-       `(mode-line ((,c :background ,bg-active :foreground ,fg-main :box (:line-width 1 :color ,fg-dim))))
-       `(mode-line-inactive ((,c :box (:line-width 1 :color ,bg-active)))))))
+(load-theme 'modus-vivendi)
 
-  (add-hook 'ef-themes-post-load-hook #'shl--ef-themes-mode-line))
 
 ;;;;; Fonts
 (set-face-attribute 'default nil
 		    :family "RobotoMono Nerd Font"
-		    :height 110
+		    :height 105
 		    :weight 'medium)
 
 ;;;;; Modeline
@@ -439,27 +436,80 @@ Looks for .venv directory in project root and activates the Python interpreter."
   :config
   (setq rust-format-on-save t))
 
-;;; AI
-(use-package gptel
-  :ensure (:url "https://github.com/karthink/gptel") ; For Emacs>=30
-  :config 
-  (setq gptel-model 'o1-mini
-	gptel-backend (gptel-make-gh-copilot "Copilot"))
-  (gptel-make-tool
-   :name "read_buffer"                    ; javascript-style snake_case name
-   :function (lambda (buffer)                  ; the function that will run
-               (unless (buffer-live-p (get-buffer buffer))
-		 (error "error: buffer %s is not live." buffer))
-               (with-current-buffer  buffer
-		 (buffer-substring-no-properties (point-min) (point-max))))
-   :description "return the contents of an emacs buffer"
-   :args (list '(:name "buffer"
-		       :type string            ; :type value must be a symbol
-		       :description "the name of the buffer whose contents are to be retrieved"))
-   :category "emacs")                     ; An arbitrary label for grouping
-  )
 
-	   
+
+(defun shl/load-config ()
+  "Reload Emacs config."
+  (interactive)
+  (load-file user-init-file)
+  (message "Emacs configuration reloaded."))
+
+
+(use-package general
+  :ensure t
+  :config
+  (general-evil-setup t)
+
+  (general-create-definer shl/leader-keys
+
+    :keymaps '(normal insert visual emacs)
+
+    :prefix "SPC"
+
+    :global-prefix "C-SPC")
+
+  (shl/leader-keys
+   "t"  '(:ignore t :which-key "toggles")
+   "f"  '(:ignore t :which-key "toggles")
+   "ff" #'find-file
+   "p"  '(:ignore t :which-key "toggles")
+   "pf" #'project-find-file
+   "pg" #'project-find-regexp
+   "g" '(:ignore t :which-key "git")
+   "gg" #'magit-status
+   ))
+
+
+(defun shl/evil-hook ()
+  (dolist (mode '(custom-mode
+		  dired-mode
+		  eshell-mode
+		  git-rebase-mode
+		  erc-mode
+		  circe-server-mode
+		  circe-chat-mode
+		  circe-query-mode
+		  sauron-mode
+		  term-mode))
+    (add-to-list 'evil-emacs-state-modes mode)))
+
+(use-package evil
+  :ensure t
+  :hook ((elpaca-after-init . evil-mode)
+	 (evil-mode . shl/evil-hook))
+  :init
+  (setq evil-want-integration t
+	evil-want-keybinding nil
+	evil-want-C-u-scroll t
+	evil-want-C-i-jump nil)
+  :config
+  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+  (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
+
+  ;; Use visual line motions even outside of visual-line-mode buffers
+  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+
+  (evil-set-initial-state 'messages-buffer-mode 'normal)
+  (evil-set-initial-state 'dashboard-mode 'normal))
+
+
+(use-package evil-collection
+  :ensure t
+  :after evil
+  :config (evil-collection-init))
+
+
 
 (provide 'init)
 ;;; init.el ends here
