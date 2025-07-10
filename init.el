@@ -4,6 +4,87 @@
 ;;; Core
 (defconst shl--cache-dir (concat user-emacs-directory ".cache/"))
 
+;;----------------------------------------------------------------------
+;; TIMEOUT: GENERIC DEBOUNCE & THROTTLE
+;;----------------------------------------------------------------------
+(defun timeout--throttle-advice (&optional timeout)
+  "Return a function that throttles its argument function.
+
+THROTTLE defaults to 1.0 seconds. This is intended for use as
+function advice."
+  (let ((throttle-timer)
+        (timeout (or timeout 1.0))
+        (result))
+    (lambda (orig-fn &rest args)
+      "Throttle calls to this function."
+      (if (timerp throttle-timer)
+          result
+        (prog1
+            (setq result (apply orig-fn args))
+          (setq throttle-timer
+                (run-with-timer
+                 timeout nil
+                 (lambda ()
+                   (cancel-timer throttle-timer)
+                   (setq throttle-timer nil)))))))))
+
+(defun timeout--debounce-advice (&optional delay default)
+  "Return a function that debounces its argument function.
+
+DELAY defaults to 0.50 seconds.  DEFAULT is the immediate return
+value of the function when called.
+
+This is intended for use as function advice."
+  (let ((debounce-timer nil)
+        (delay (or delay 0.50)))
+    (lambda (orig-fn &rest args)
+      "Debounce calls to this function."
+      (if (timerp debounce-timer)
+          (timer-set-idle-time debounce-timer delay)
+        (prog1 default
+          (setq debounce-timer
+                (run-with-idle-timer
+                 delay nil
+                 (lambda (buf)
+                   (cancel-timer debounce-timer)
+                   (setq debounce-timer nil)
+                   (with-current-buffer buf
+                     (apply orig-fn args)))
+                 (current-buffer))))))))
+
+;;;###autoload
+(defun timeout-debounce! (func &optional delay default)
+  "Debounce FUNC by DELAY seconds.
+
+This advises FUNC, when called (interactively or from code), to
+run after DELAY seconds. If FUNC is called again within this time,
+the timer is reset.
+
+DELAY defaults to 0.5 seconds. Using a delay of 0 resets the
+function.
+
+DEFAULT is the immediate return value of the function when called."
+  (if (and delay (= delay 0))
+      (advice-remove func 'debounce)
+    (advice-add func :around (timeout--debounce-advice delay default)
+                '((name . debounce)
+                  (depth . -99)))))
+
+;;;###autoload
+(defun timeout-throttle! (func &optional throttle)
+  "Throttle FUNC by THROTTLE seconds.
+
+This advises FUNC so that it can run no more than once every
+THROTTLE seconds.
+
+THROTTLE defaults to 1.0 seconds. Using a throttle of 0 resets the
+function."
+  (if (= throttle 0)
+      (advice-remove func 'throttle)
+    (advice-add func :around (timeout--throttle-advice throttle)
+                '((name . throttle)
+                  (depth . -98)))))
+
 ;;; Package Manager
 (defvar elpaca-installer-version 0.11)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
@@ -57,6 +138,10 @@
   ;; These are often helpful for finer control if xterm-mouse-mode alone isn't enough
   (global-set-key (kbd "<mouse-4>") 'scroll-down-line)
   (global-set-key (kbd "<mouse-5>") 'scroll-up-line))
+
+(setq select-enable-clipboard 't)
+(setq select-enable-primary nil)
+(setq interprogram-cut-function #'gui-select-text)
 
 ;;;; UI
 ;;;;; Theme
@@ -373,25 +458,86 @@ the unwritable tidbits."
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
-
-
-(use-package activities
-  :ensure t
-  :init
-  (activities-mode)
-  (activities-tabs-mode)
-  ;; Prevent `edebug' default bindings from interfering.
-  (setq edebug-inhibit-emacs-lisp-mode-bindings t)
+;;; Workspaces
+(use-package tab-bar
+  :defer
   :bind
-  (("C-x C-a C-n" . activities-new)
-   ("C-x C-a C-d" . activities-define)
-   ("C-x C-a C-a" . activities-resume)
-   ("C-x C-a C-s" . activities-suspend)
-   ("C-x C-a C-k" . activities-kill)
-   ("C-x C-a RET" . activities-switch)
-   ("C-x C-a b" . activities-switch-buffer)
-   ("C-x C-a g" . activities-revert)
-   ("C-x C-a l" . activities-list)))
+  :custom-face
+  (tab-bar-tab ((t (:inherit font-lock-function-name-face))))
+  :config
+  (tab-bar-history-mode 1)
+  (defun tab-bar-format-menu-bar ()
+    "Produce the Menu button for the tab bar that shows the menu bar."
+    `((menu-bar menu-item (propertize " 𝝺 " 'face 'tab-bar-tab-inactive)
+                tab-bar-menu-bar :help "Menu Bar")))
+  (defun my/tab-bar-tab-name-format-comfortable (tab i)
+    (propertize (concat " " (tab-bar-tab-name-format-default tab i) " ")
+                'face (funcall tab-bar-tab-face-function tab)))
+  (setq tab-bar-tab-name-format-function #'my/tab-bar-tab-name-format-comfortable)
+  
+  ;; Make items in tab-bar-format-global clickable
+  (define-advice tab-bar-format-global (:override () with-buttons)
+    (let ((strings (split-string (format-mode-line global-mode-string))))
+      (mapcan (lambda (s)
+                (list
+                 `(sep menu-item ,(tab-bar-separator) ignore)
+                 `(global menu-item ,s tab-bar-format-global-action)))
+              strings)))
+  
+  (defun tab-bar-format-global-action (event)
+    (interactive "e")
+    (let ((posn (event-start event)))
+      (when-let* ((str (posn-string posn))
+                  (str-button (get-text-property (cdr str) 'button (car str))))
+	(button-activate str t))))
+  
+  (setq tab-bar-format '(tab-bar-format-menu-bar
+                         ;; tab-bar-format-history
+                         tab-bar-format-tabs
+                         tab-bar-separator
+                         tab-bar-format-add-tab
+                         tab-bar-format-align-right
+                         tab-bar-format-global)
+        tab-bar-close-button-show nil)
+
+  (add-variable-watcher
+   'tab-bar-show
+   (defun my/tab-bar-show--handle-global-mode-string
+       (sym newval op _buf)
+     (when (eq op 'set)
+       (if newval
+           (progn (add-to-list 'tab-bar-format 'tab-bar-format-global 'append)
+                  (tab-bar--define-keys))
+         (set 'tab-bar-format (delq 'tab-bar-format-global tab-bar-format))))))
+
+  (defun my/tab-bar-name ()
+    "Use project as tab name."
+    (let ((dir (expand-file-name
+                ;; (or (if (fboundp 'project-root)
+                ;;         (project-root (project-current)))
+                ;;     default-directory)
+                default-directory
+                )))
+      (or
+       (and dir
+            (let ((name (file-name-nondirectory (substring dir 0 -1))))
+              ;; (substring dir (1+ (string-match "/[^/]+/$" dir)) -1)
+              (truncate-string-to-width name tab-bar-tab-name-truncated-max nil ? )))
+       (buffer-name))))
+  (timeout-throttle! #'my/tab-bar-name 0.6)
+  
+  (setq  tab-bar-close-last-tab-choice 'tab-bar-mode-disable
+         tab-bar-show                   '0 ;; (when (version< "28.0" emacs-version) 1)
+         tab-bar-tab-name-truncated-max 24
+         tab-bar-new-tab-choice        "*scratch*"
+         tab-bar-tab-name-function #'tab-bar-tab-name-current-with-count)
+
+  (setq tab-bar-select-tab-modifiers '(meta hyper))
+
+  (defun my/tab-bar-show-hide-tabs ()
+    "Show or hide tabs."
+    (interactive)
+    (setq tab-bar-show (if tab-bar-show nil 1))))
 
 ;;; Compilation
 ;; Colorful Compilation
@@ -505,16 +651,11 @@ Looks for .venv directory in project root and activates the Python interpreter."
    "pg" #'project-find-regexp
    "g" '(:ignore t :which-key "git")
    "gg" #'magit-status
-   "a" '(:ignore t :which-key "activities")
-   "an" #'activities-new
-   "ad" #'activities-define
-   "aa" #'activities-resume
-   "as" #'activities-suspend
-   "ak" #'activities-kill
-   "a RET" #'activities-switch
-   "ab" #'activities-switch-buffer
-   "ag" #'activities-revert
-   "al" #'activities-list
+   "w" '(:ignore t :which-key "workspaces")
+   "wo" #'other-frame-prefix
+   "ww" #'beframe-prefix-map
+   "wb" #'beframe-buffer-menu
+   "wf" #'select-frame-by-name
    ))
 
 
