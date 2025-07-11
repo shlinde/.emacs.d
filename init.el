@@ -612,94 +612,13 @@ Looks for .venv directory in project root and activates the Python interpreter."
           (message "Activated UV Python environment at %s" venv-path))
       (error "No UV Python environment found in %s" project-root))))
 
-
-;;;; Rust
-(use-package rust-mode
-  :ensure t
-  :mode "\\.rs\\'"
-  :init
-  (setq rust-mode-treesitter-derive t)
-  (add-hook 'rust-mode-hook
-            (lambda () (prettify-symbols-mode)))
-  :config
-  (setq rust-format-on-save t))
-
-
-
 (defun shl/load-config ()
   "Reload Emacs config."
   (interactive)
   (load-file user-init-file)
   (message "Emacs configuration reloaded."))
 
-
-(use-package general
-  :ensure t
-  :config
-  (general-evil-setup t)
-  (general-create-definer shl/leader-keys
-    :keymaps '(normal insert visual emacs)
-    :prefix "SPC"
-    :global-prefix "C-SPC")
-
-  (shl/leader-keys
-   "t"  '(:ignore t :which-key "toggles")
-   "f"  '(:ignore t :which-key "toggles")
-   "ff" #'find-file
-   "p"  '(:ignore t :which-key "toggles")
-   "pf" #'project-find-file
-   "pg" #'project-find-regexp
-   "g" '(:ignore t :which-key "git")
-   "gg" #'magit-status
-   "w" '(:ignore t :which-key "workspaces")
-   "wo" #'other-frame-prefix
-   "ww" #'beframe-prefix-map
-   "wb" #'beframe-buffer-menu
-   "wf" #'select-frame-by-name
-   ))
-
-
-(defun shl/evil-hook ()
-  (dolist (mode '(custom-mode
-		  dired-mode
-		  eshell-mode
-		  git-rebase-mode
-		  erc-mode
-		  circe-server-mode
-		  circe-chat-mode
-		  circe-query-mode
-		  sauron-mode
-		  term-mode))
-    (add-to-list 'evil-emacs-state-modes mode)))
-
-(use-package evil
-  :ensure t
-  :hook ((elpaca-after-init . evil-mode)
-	 (evil-mode . shl/evil-hook))
-  :init
-  (setq evil-want-integration t
-	evil-want-keybinding nil
-	evil-want-C-u-scroll t
-	evil-want-C-i-jump nil)
-  :config
-  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-  (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
-
-  ;; Use visual line motions even outside of visual-line-mode buffers
-  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
-
-  (evil-set-initial-state 'messages-buffer-mode 'normal)
-  (evil-set-initial-state 'dashboard-mode 'normal))
-
-
-(use-package evil-collection
-  :ensure t
-  :after evil
-  :config (evil-collection-init))
-
-
-
+(require 'init-evil)
 
 (provide 'init)
 ;;; init.el ends here
