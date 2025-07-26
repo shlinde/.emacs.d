@@ -17,7 +17,7 @@ function advice."
         (result))
     (lambda (orig-fn &rest args)
       "Throttle calls to this function."
-      (if (timerp throttle-timer)
+n      (if (timerp throttle-timer)
           result
         (prog1
             (setq result (apply orig-fn args))
@@ -130,6 +130,13 @@ function."
   ;; Enable use-package :ensure support for Elpaca.
   (elpaca-use-package-mode))
 
+;;; Org mode
+(use-package org
+  :ensure t
+  :bind (("C-c n" . (lambda ()
+		      (interactive)
+		      (find-file "~/data/org/inbox.org")))))
+
 ;;; User Experience
 ;;;; Terminal
 ;; Enable mouse-based scrolling in terminal Emacs
@@ -147,28 +154,110 @@ function."
 ;;;;; Theme
 (setq custom-safe-themes t)
 
-(load-theme 'modus-vivendi)
+(use-package solarized-theme
+  :ensure t)
+
+(use-package zenburn-theme
+  :ensure t)
 
 
-;;;;; Fonts
-(set-face-attribute 'default nil
-		    :family "RobotoMono Nerd Font"
-		    :height 105
-		    :weight 'medium)
+(use-package circadian
+  :ensure t
+  :config
+  (setq circadian-themes '(("5:00" . solarized-light)
+                           ("19:30" . zenburn)))
+  (circadian-setup))
+
+;;;;; Fontaine (font configurations)
+;; Read the manual: <https://protesilaos.com/emacs/fontaine>
+(use-package fontaine
+  :ensure t
+  :hook
+  ;; Persist the latest font preset when closing/starting Emacs.
+  ((elpaca-after-init . fontaine-mode)
+   (elpaca-after-init . (lambda ()
+			  (fontaine-set-preset 'medium-dark))))
+  :bind (("C-c f" . fontaine-set-preset)
+         ("C-c F" . fontaine-toggle-preset))
+  :config
+  ;; And this is for Emacs28.
+  (setq-default text-scale-remap-header-line t)
+
+  ;; This is the default value.  Just including it here for
+  ;; completeness.
+  (setq fontaine-latest-state-file (locate-user-emacs-file "fontaine-latest-state.eld"))
+
+  ;; The font family is my design: <https://github.com/protesilaos/aporetic>.
+  (setq fontaine-presets
+        '((small
+           :default-height 80)
+          (regular-dark
+           :default-family "Aporetic Serif Mono"
+           :default-height 110
+	   :default-width semi-bold
+           :fixed-pitch-family "Aporetic Serif Mono"
+           :variable-pitch-family "Aporetic Sans")
+          (regular-light
+           :default-family "Aporetic Serif Mono"
+           :default-height 110
+	   :default-width semi-light
+           :fixed-pitch-family "Aporetic Serif Mono"
+           :variable-pitch-family "Aporetic Sans")
+          (medium-dark
+           :default-family "Aporetic Serif Mono"
+           :default-height 115
+	   :default-width semi-bold
+           :fixed-pitch-family "Aporetic Serif Mono"
+           :variable-pitch-family "Aporetic Sans")
+          (medium-light
+           :default-family "Aporetic Serif Mono"
+           :default-height 115
+	   :default-width semi-light
+           :fixed-pitch-family "Aporetic Serif Mono"
+           :variable-pitch-family "Aporetic Sans")
+          (large
+           :default-height 150)
+          (presentation
+           :default-height 180)
+          (jumbo
+           :inherit medium
+           :default-height 260))))
+
+
+;;;; Font Lock
+(use-package font-lock
+  :ensure nil
+  :defer 1
+  :custom
+  ;; Max font lock decoration (set nil for less)
+  (font-lock-maximum-decoration t)
+  ;; No limit on font lock
+  (font-lock-maximum-size nil))
+
+;; Set default line spacing. If the value is an integer, it indicates
+;; the number of pixels below each line. A decimal number is a scaling factor
+;; relative to the current window's default line height. The setq-default
+;; function sets this for all buffers. Otherwise, it only applies to the current
+;; open buffer
+(setq-default line-spacing 0.05)
+
+
 
 ;;;;; Modeline
+;; (use-package doom-modeline
+;;   :ensure t
+;;   :demand t
+;;   :hook (elpaca-after-init . doom-modeline-mode))
+
 (use-package time
   :ensure nil
+  :demand t
   :hook (elpaca-after-init . display-time-mode))
 
 (use-package battery
   :ensure nil
-  :hook (elpaca-after-init . display-battery-mode))
-
-(use-package doom-modeline
-  :ensure t
   :demand t
-  :hook (elpaca-after-init . doom-modeline-mode))
+  :hook (elpaca-after-init . display-battery-mode))
 
 ;;;; Editor
 ;; Ensure keyboard repeat rate
@@ -208,16 +297,6 @@ function."
                   ;; Prefix tramp autosaves to prevent conflicts with local ones
                   (concat auto-save-list-file-prefix "tramp-\\2") t)
             (list ".*" auto-save-list-file-prefix t)))
-
-;; Smooth scrolling
-(use-package ultra-scroll
-  :ensure (:url "https://github.com/jdtsmith/ultra-scroll") ; For Emacs>=30
-  :init
-  (setq scroll-conservatively 3 ; or whatever value you prefer, since v0.4
-        scroll-margin 0)        ; important: scroll-margin>0 not yet supported
-  :config
-  (ultra-scroll-mode 1))
-
 
 ;;; Built-in Plugins
 (use-package autorevert
@@ -560,7 +639,7 @@ the unwritable tidbits."
 ;;;; Environment Variables
 (use-package exec-path-from-shell
   :ensure t
-  :hook (emacs-startup . exec-path-from-shell-initialize)
+  :hook (elpaca-after-init . exec-path-from-shell-initialize)
   :config (exec-path-from-shell-copy-env "ANTROPIC_API_KEY"))
 
 ;;; Version Control
@@ -618,7 +697,48 @@ Looks for .venv directory in project root and activates the Python interpreter."
   (load-file user-init-file)
   (message "Emacs configuration reloaded."))
 
-(require 'init-evil)
+(use-package pdf-tools
+  :ensure t
+  :bind (("C-c r" . (lambda ()
+		      (interactive)
+		      (ido-find-file-in-dir "~/data/resources/books/"))))
+  :config
+  (pdf-tools-install))
+
+(use-package eat
+  :bind ("C-c t t" . eat)
+  :ensure t)
+
+
+(defun shl/org-open-file-from-property ()
+  "Find and open the file specified in the \"file\" property of the current Org heading.
+
+The function searches for a property like:
+:PROPERTIES:
+:file: /path/to/your/file.txt
+:END:
+
+and opens the specified file."
+  (interactive)
+  ;; We need to be in org-mode to use this function
+  (unless (derived-mode-p 'org-mode)
+    (error "This command can only be run from an Org mode buffer"))
+
+  (let* (;; org-entry-get will get a property from the current headline.
+         ;; The "t" argument tells it to search inherited properties as well.
+         (file-path (org-entry-get (point) "file-path" t)))
+
+    ;; Check if the file-path was found and is not an empty string
+    (if (and file-path (not (string-empty-p file-path)))
+        ;; If a valid path is found, expand it (to handle ~/) and open it
+        (find-file (expand-file-name file-path))
+      ;; If no "file" property is found, inform the user.
+      (message "No \":file:\" property found at the current heading."))))
+
+(with-eval-after-load 'org
+  (define-key org-mode-map (kbd "C-c r") #'shl/org-open-file-from-property))
+
+;; (require 'init-evil)
 
 (provide 'init)
 ;;; init.el ends here
