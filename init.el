@@ -17,7 +17,7 @@ function advice."
         (result))
     (lambda (orig-fn &rest args)
       "Throttle calls to this function."
-n      (if (timerp throttle-timer)
+      (if (timerp throttle-timer)
           result
         (prog1
             (setq result (apply orig-fn args))
@@ -132,10 +132,11 @@ function."
 
 ;;; Org mode
 (use-package org
-  :ensure t
+  :ensure (:wait t)
   :bind (("C-c n" . (lambda ()
 		      (interactive)
 		      (find-file "~/data/org/inbox.org")))))
+
 
 ;;; User Experience
 ;;;; Terminal
@@ -154,18 +155,32 @@ function."
 ;;;;; Theme
 (setq custom-safe-themes t)
 
-(use-package solarized-theme
-  :ensure t)
-
-(use-package zenburn-theme
-  :ensure t)
+(use-package modus-themes
+  :ensure t
+  :config
+  (setq modus-themes-custom-auto-reload nil
+        modus-themes-to-toggle '(modus-operandi modus-vivendi)
+        ;; modus-themes-to-toggle '(modus-operandi-tinted modus-vivendi-tinted)
+        ;; modus-themes-to-toggle '(modus-operandi-deuteranopia modus-vivendi-deuteranopia)
+        ;; modus-themes-to-toggle '(modus-operandi-tritanopia modus-vivendi-tritanopia)
+        modus-themes-to-rotate modus-themes-items
+        modus-themes-mixed-fonts t
+        modus-themes-variable-pitch-ui t
+        modus-themes-italic-constructs t
+        modus-themes-bold-constructs t
+        modus-themes-completions '((t . (bold)))
+        modus-themes-prompts '(bold)
+        modus-themes-headings
+        '((agenda-structure . (variable-pitch light 2.2))
+          (agenda-date . (variable-pitch regular 1.3))
+          (t . (regular 1.15)))))
 
 
 (use-package circadian
   :ensure t
   :config
-  (setq circadian-themes '(("5:00" . solarized-light)
-                           ("19:30" . zenburn)))
+  (setq circadian-themes '(("5:00" . modus-operandi-tinted)
+                           ("19:30" . modus-vivendi-tinted)))
   (circadian-setup))
 
 ;;;;; Fontaine (font configurations)
@@ -737,6 +752,132 @@ and opens the specified file."
 
 (with-eval-after-load 'org
   (define-key org-mode-map (kbd "C-c r") #'shl/org-open-file-from-property))
+
+;;; Org-mode (personal information manager)
+(use-package org
+  :ensure nil
+  :init
+  (setq org-directory (expand-file-name "~/data/org/"))
+  (setq org-imenu-depth 7)
+
+  (add-to-list 'safe-local-variable-values '(org-hide-leading-stars . t))
+  (add-to-list 'safe-local-variable-values '(org-hide-macro-markers . t))
+  :bind
+  (:map global-map
+	("C-c l" . org-store-link)
+	("C-c o" . org-open-at-point-global)
+	:map org-mode-map
+	("C-c M-l" . org-insert-last-stored-link)
+	("C-c C-M-l" . org-toggle-link-display)
+	("M-." . org-edit-special) ; alias for C-c ' (mnenomic is global M-. that goes to source)
+	:map org-src-mode-map
+	("M-," . org-edit-src-exit) ; see M-. above
+	:map narrow-map
+	("b" . org-narrow-to-block)
+	("e" . org-narrow-to-element)
+	("s" . org-narrow-to-subtree))
+  :config
+  (setq org-special-ctrl-a/e nil)
+  (setq org-special-ctrl-k nil)
+  (setq org-M-RET-may-split-line '((default . nil)))
+  (setq org-hide-emphasis-markers nil)
+  (setq org-hide-macro-markers nil)
+  (setq org-hide-leading-stars nil)
+  (setq org-cycle-separator-lines 0)
+  (setq org-structure-template-alist
+        '(("s" . "src")
+          ("e" . "src emacs-lisp")
+          ("E" . "src emacs-lisp :results value code :lexical t")
+          ("t" . "src emacs-lisp :tangle FILENAME")
+          ("T" . "src emacs-lisp :tangle FILENAME :mkdirp yes")
+          ("x" . "example")
+          ("X" . "export")
+          ("q" . "quote")))
+  (setq org-fold-catch-invisible-edits 'show)
+  (setq org-return-follows-link nil)
+  (setq org-loop-over-headlines-in-active-region 'start-level)
+  (setq org-modules '(ol-info ol-eww))
+  (setq org-use-sub-superscripts '{})
+  (setq org-insert-heading-respect-content t)
+  (setq org-read-date-prefer-future 'time)
+  (setq org-highlight-latex-and-related nil) ; other options affect elisp regexp in src blocks
+  (setq org-fontify-quote-and-verse-blocks t)
+  (setq org-fontify-whole-block-delimiter-line t)
+  (setq org-track-ordered-property-with-tag t)
+  (setq org-highest-priority ?A)
+  (setq org-lowest-priority ?C)
+  (setq org-default-priority ?A)
+  (setq org-priority-faces nil))
+
+
+;;;; `org-indent-mode' and related
+(use-package org
+  :ensure nil
+  :hook (org . org-indent-mode)
+  :config
+  (setq org-adapt-indentation nil) ; No, non, nein, όχι to literal indentation!
+  (setq org-indent-mode-turns-on-hiding-stars nil)
+  (setq org-indent-indentation-per-level 2))
+
+;;;; refile, todo
+(use-package org
+  :ensure nil
+  :config
+  (setq org-refile-targets
+        '((org-agenda-files . (:maxlevel . 2))
+          (nil . (:maxlevel . 2))))
+  (setq org-refile-use-outline-path t)
+  (setq org-refile-allow-creating-parent-nodes 'confirm)
+  (setq org-refile-use-cache t)
+  (setq org-reverse-note-order nil)
+
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "MAYBE(m)" "|" "CANCELED(c@)" "DONE(d!)")
+	  (sequence "NOTE(n)")
+	  (sequence "READ(r) | COMPLETED(C!)")))
+
+  (defface shl/org-todo-alternative
+    '((t :inherit (italic org-todo)))
+    "Face for alternative TODO-type Org keywords.")
+
+  (defface shl/org-done-alternative
+    '((t :inherit (italic org-done)))
+    "Face for alternative DONE-type Org keywords.")
+
+  (setq org-todo-keyword-faces
+        '(("MAYBE" . shl/org-todo-alternative)
+          ("CANCELED" . shl/org-done-alternative)))
+
+  (defface shl/org-tag-coaching
+    '((default :inherit unspecified :weight regular :slant normal)
+      (((class color) (min-colors 88) (background light))
+       :foreground "#004476")
+      (((class color) (min-colors 88) (background dark))
+       :foreground "#c0d0ef")
+      (t :foreground "cyan"))
+    "Face for coaching Org tag.")
+
+  (defface shl/org-tag-shlasks
+    '((default :inherit unspecified :weight regular :slant normal)
+      (((class color) (min-colors 88) (background light))
+       :foreground "#603f00")
+      (((class color) (min-colors 88) (background dark))
+       :foreground "#deba66")
+      (t :foreground "yellow"))
+    "Face for shlasks Org tag.")
+
+  (setq org-tag-faces
+        '(("coaching" . shl/org-tag-coaching)
+          ("shlasks" . shl/org-tag-shlasks)))
+
+  (setq org-use-fast-todo-selection 'expert)
+
+  (setq org-fontify-done-headline nil)
+  (setq org-fontify-todo-headline nil)
+  (setq org-fontify-whole-heading-line nil)
+  (setq org-enforce-todo-dependencies t)
+  (setq org-enforce-todo-checkbox-dependencies t))
+
 
 ;; (require 'init-evil)
 
