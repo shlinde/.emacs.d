@@ -179,8 +179,8 @@ function."
 (use-package circadian
   :ensure t
   :config
-  (setq circadian-themes '(("5:00" . modus-operandi-tinted)
-                           ("19:30" . modus-vivendi-tinted)))
+  (setq circadian-themes '(("5:00" . modus-operandi)
+                           ("19:30" . modus-vivendi)))
   (circadian-setup))
 
 ;;;;; Fontaine (font configurations)
@@ -191,7 +191,7 @@ function."
   ;; Persist the latest font preset when closing/starting Emacs.
   ((elpaca-after-init . fontaine-mode)
    (elpaca-after-init . (lambda ()
-			  (fontaine-set-preset 'medium-dark))))
+			  (fontaine-set-preset 'regular-light))))
   :bind (("C-c f" . fontaine-set-preset)
          ("C-c F" . fontaine-toggle-preset))
   :config
@@ -209,25 +209,25 @@ function."
           (regular-dark
            :default-family "Aporetic Serif Mono"
            :default-height 110
-	   :default-width semi-bold
+	   :default-weight semibold
            :fixed-pitch-family "Aporetic Serif Mono"
            :variable-pitch-family "Aporetic Sans")
           (regular-light
            :default-family "Aporetic Serif Mono"
            :default-height 110
-	   :default-width semi-light
+	   :default-weight semilight
            :fixed-pitch-family "Aporetic Serif Mono"
            :variable-pitch-family "Aporetic Sans")
           (medium-dark
            :default-family "Aporetic Serif Mono"
            :default-height 115
-	   :default-width semi-bold
+	   :default-weight semibold
            :fixed-pitch-family "Aporetic Serif Mono"
            :variable-pitch-family "Aporetic Sans")
           (medium-light
            :default-family "Aporetic Serif Mono"
            :default-height 115
-	   :default-width semi-light
+	   :default-weight semilight
            :fixed-pitch-family "Aporetic Serif Mono"
            :variable-pitch-family "Aporetic Sans")
           (large
@@ -834,7 +834,8 @@ and opens the specified file."
   (setq org-todo-keywords
         '((sequence "TODO(t)" "MAYBE(m)" "|" "CANCELED(c@)" "DONE(d!)")
 	  (sequence "NOTE(n)")
-	  (sequence "READ(r) | COMPLETED(C!)")))
+	  (sequence "READ(r) | COMPLETED(C!)")
+	  (sequence "APPOINTMENT(a)")))
 
   (defface shl/org-todo-alternative
     '((t :inherit (italic org-todo)))
@@ -878,6 +879,72 @@ and opens the specified file."
   (setq org-enforce-todo-dependencies t)
   (setq org-enforce-todo-checkbox-dependencies t))
 
+(use-package org
+  :ensure nil
+  :bind (("C-c c" . org-capture)
+	 ("C-c j" . open-journal)
+	 ("C-c a" . org-agenda))
+  :init
+  (defun open-journal ()
+    "Open the journal.org file in ~/data/org/ directory."
+    (interactive)
+    (find-file "~/data/org/journal.org"))
+  :config
+  (setq org-capture-templates
+	(quote (("j" "Journal" entry (file "~/data/org/journal.org")
+		 "* %^{Title} :JOURNAL:\n:PROPERTIES:\n:CREATED: %U\n:END:\n\n%?"
+		 :prepend t
+		 :empty-lines 1)
+		("a" "Appointment" entry (file "~/data/org/journal.org")
+		 "* APPOINTMENT %^{Title} :APPOINTMENT:\n:PROPERTIES:\n:CREATED: %U\n:END:\n\n%?"
+		 :prepend t
+		 :empty-lines 1)
+		("t" "Todo" entry (file "~/data/org/journal.org")
+		 "* TODO %^{Title} :TODO:\n:PROPERTIES:\n:CREATED: %U\n:END:\n\n%?"
+		 :prepend t
+		 :empty-lines 1))))
+
+  (setq org-agenda-files '("~/data/org/journal.org")
+	org-log-into-drawer t))
+
+
+(use-package org-modern
+  :ensure t
+  :hook (elpaca-after-init . global-org-modern-mode))
+
+;;; AI
+(use-package gptel
+  :ensure (:url "https://github.com/karthink/gptel") ; For Emacs>=30
+  :config 
+  (setq gptel-backend (gptel-make-gh-copilot "Copilot")
+	gptel-default-mode 'org-mode)
+  (gptel-make-tool
+   :name "read_buffer"                    ; javascript-style snake_case name
+   :function (lambda (buffer)                  ; the function that will run
+               (unless (buffer-live-p (get-buffer buffer))
+		 (error "error: buffer %s is not live." buffer))
+               (with-current-buffer  buffer
+		 (buffer-substring-no-properties (point-min) (point-max))))
+   :description "return the contents of an emacs buffer"
+   :args (list '(:name "buffer"
+		       :type string            ; :type value must be a symbol
+		       :description "the name of the buffer whose contents are to be retrieved"
+   :category "emacs"))))                     ; An arbitrary label for grouping
+
+
+(use-package mcp
+  :ensure t
+  :after gptel
+  :custom (mcp-hub-servers
+           `(("filesystem" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-filesystem" "/home/lizqwer/MyProject/")))
+             ("fetch" . (:command "uvx" :args ("mcp-server-fetch")))
+	     ("ddg-search" . (:command "uvx" :args ("duckduckgo-mcp-server")))
+             ("context7" . (:command "npx" :args ("-y" "@upstash/context7-mcp@latest")))
+             ("sequential-thinking" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-sequential-thinking")))
+             ("qdrant" . (:url "http://localhost:8000/sse"))))
+  :config
+  (require 'mcp-hub)
+  (require 'gptel-integrations))
 
 ;; (require 'init-evil)
 
