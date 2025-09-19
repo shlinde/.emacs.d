@@ -137,7 +137,6 @@ function."
 		      (interactive)
 		      (find-file "~/data/org/inbox.org")))))
 
-
 ;;; User Experience
 ;;;; Terminal
 ;; Enable mouse-based scrolling in terminal Emacs
@@ -432,7 +431,6 @@ the unwritable tidbits."
   :bind (;; C-c bindings in `mode-specific-map'
          ("C-c M-x" . consult-mode-command)
 	 ("C-x C-r" . consult-recent-file)  ;; Removes open read only 
-         ("C-c h" . consult-history)
          ("C-c k" . consult-kmacro)
          ("C-c m" . consult-man)
          ("C-c i" . consult-info)
@@ -532,6 +530,7 @@ the unwritable tidbits."
 
 (use-package embark
   :ensure t
+  :demand t
   :bind
   (("C-." . embark-act)         ;; pick some comfortable binding
    ("C-;" . embark-dwim)        ;; good alternative: M-.
@@ -813,7 +812,8 @@ and opens the specified file."
 ;;;; `org-indent-mode' and related
 (use-package org
   :ensure nil
-  :hook (org . org-indent-mode)
+  :hook ((org . org-indent-mode)
+	 (org . visual-line-mode))
   :config
   (setq org-adapt-indentation nil) ; No, non, nein, όχι to literal indentation!
   (setq org-indent-mode-turns-on-hiding-stars nil)
@@ -915,8 +915,31 @@ and opens the specified file."
 ;;; AI
 (use-package gptel
   :ensure (:url "https://github.com/karthink/gptel") ; For Emacs>=30
+  :bind (:map embark-region-map
+	      ("+" . gptel-add))
+  :after general
+  :preface
+  (defun shl/gptel-minibuffer (prompt)
+    (interactive (list (read-string "GPT> ")))
+    (message "GPT... Thinking")
+    (let ((gptel-model "gemini-2.0-flash-001")
+          (gptel-max-tokens 256)
+	  (gptel-tools '()))
+      (gptel-request
+	  prompt
+	:stream nil ;; ensure single final callback
+	:callback
+	(lambda (response info)
+	  (if-let* ((err (plist-get info :error)))
+	      (message "GPT error: %s" err)
+	    (when (stringp response)
+	      (kill-new response)
+	      (let ((one-line (replace-regexp-in-string "[\n\r]+" " "
+							(string-trim response))))
+		(message "GPT: %s" one-line))))))))
   :config 
   (setq gptel-backend (gptel-make-gh-copilot "Copilot")
+	gptel-model 'gpt-5
 	gptel-default-mode 'org-mode)
   (gptel-make-tool
    :name "read_buffer"                    ; javascript-style snake_case name
@@ -929,22 +952,42 @@ and opens the specified file."
    :args (list '(:name "buffer"
 		       :type string            ; :type value must be a symbol
 		       :description "the name of the buffer whose contents are to be retrieved"
-   :category "emacs"))))                     ; An arbitrary label for grouping
+		       :category "emacs")))
+
+  (with-eval-after-load 'which-key
+    (which-key-add-key-based-replacements "C-c h" "gptel")))
+
+(use-package general
+  :ensure t
+  :config
+  (general-define-key
+   :prefix "C-c h"
+   :which-key "gptel"
+   "h" #'shl/gptel-minibuffer
+   "m" #'gptel-menu
+   "n" #'gptel))
 
 
 (use-package mcp
   :ensure t
   :after gptel
+  :hook (elpaca-after-init . (lambda ()
+			       (mcp-hub-connect)
+			       (message "MCP: connected: %s" (mch-hub-list-connections))))
   :custom (mcp-hub-servers
-           `(("filesystem" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-filesystem" "/home/lizqwer/MyProject/")))
+           `(("filesystem" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-filesystem" "/home/slinde/data")))
              ("fetch" . (:command "uvx" :args ("mcp-server-fetch")))
+	     ("serena" . (:command "uvx" :args ("--from" "git+https://github.com/oraios/serena" "serena" "start-mcp-server")))
+	     ("deepwiki" :url "https://mcp.deepwiki.com/sse")
 	     ("ddg-search" . (:command "uvx" :args ("duckduckgo-mcp-server")))
-             ("context7" . (:command "npx" :args ("-y" "@upstash/context7-mcp@latest")))
-             ("sequential-thinking" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-sequential-thinking")))
-             ("qdrant" . (:url "http://localhost:8000/sse"))))
+             ;; ("context7" . (:command "npx" :args ("-y" "@upstash/context7-mcp@latest")))  ;; deep-wiki should be better
+             ("sequential-thinking" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-sequential-thinking")))))
   :config
   (require 'mcp-hub)
-  (require 'gptel-integrations))
+  (require 'gptel-integrations)
+
+  (setq ))
+
 
 ;; (require 'init-evil)
 
