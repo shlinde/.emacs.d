@@ -18,10 +18,18 @@
   (general-create-definer shl/evil-local-leader
     :prefix shl/evil-local-leader-key))
 
+
 (use-package evil
   :ensure t
   :hook ((text-mode prog-mode) . evil-mode)
   :preface
+
+  (defun shl/save-and-kill-buffer ()
+    "Save the current buffer to file, then kill it."
+    (interactive)
+    (save-buffer)
+    (kill-current-buffer))
+
   (general-setq evil-want-keybinding nil
 		evil-want-integration t
 		evil-ex-search-vim-style-regexp t
@@ -60,6 +68,10 @@
    :states 'motion
    "j" 'evil-next-visual-line
    "k" 'evil-previous-visual-line)
+
+  ;; Ensure that :q works as I expect
+  (evil-ex-define-cmd "q" 'kill-current-buffer)
+  (evil-ex-define-cmd "wq" 'shl/save-and-kill-buffer)
 
   (evil-set-initial-state 'messages-buffer-mode 'normal)
   (evil-set-initial-state 'dashboard-mode 'normal))
@@ -196,6 +208,7 @@
   :general
   (shl/evil-local-leader
     :keymaps 'python-base-mode-map
+    :states 'normal
     "u" '(uv :which-key "uv")
     "a" '(uv-add :which-key "uv add")
     "r" '(uv-run :which-key "uv run")))
@@ -204,7 +217,8 @@
   :states 'normal
   "b b" '(consult-buffer :which-key "switch buffer")
   "b k" '(kill-buffer :which-key "kill buffer")
-  "f f" '(find-file :which-key "find files"))
+  "f f" '(find-file :which-key "find files")
+  "f r" '(consult-recent-file :which-key "find recent"))
 
 (use-package magit
   :ensure nil
