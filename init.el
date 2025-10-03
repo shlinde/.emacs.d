@@ -204,11 +204,14 @@ function."
 (use-package ef-themes
   :ensure t)
 
+(use-package zenburn-theme
+  :ensure t)
+
 (use-package circadian
   :ensure t
   :config
-  (setq circadian-themes '(("5:00" . ef-summer)
-                           ("19:30" . kaolin-dark)))
+  (setq circadian-themes '(("5:00" . zenburn)
+                           ("19:30" . zenburn)))
   (circadian-setup))
 
 ;;;;; Fontaine (font configurations)
@@ -1298,7 +1301,7 @@ Returns nil if nothing is found."
                ("integration" "integration/*")
                (:exclude ".dir-locals.el" "*-tests.el"))))
 
-(require 'init-evil)
+;; (require 'init-evil)
 (require 'init-org)
 (require 'init-ai)
 
