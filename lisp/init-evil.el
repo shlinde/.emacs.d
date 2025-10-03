@@ -169,8 +169,11 @@
   "n a" '(org-agenda :which-key "agenda")
   "n j" '(shl/open-journal :which-key "open journal"))
 
-(general-with 'gptel
+(use-package gptel
+  :ensure nil
+  :general
   (shl/evil-leader
+    :states 'normal
     "h f" '(shl/gptel-chat-open     :which-key "chats browse")
     "h s" '(shl/gptel-chat-ripgrep  :which-key "chats search")
     "h l" '(shl/gptel-chat-latest :which-key "latest chat")

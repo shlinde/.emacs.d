@@ -187,11 +187,6 @@ function."
   :ensure t
   :config
   (setq modus-themes-custom-auto-reload nil
-        modus-themes-to-toggle '(modus-operandi modus-vivendi)
-        ;; modus-themes-to-toggle '(modus-operandi-tinted modus-vivendi-tinted)
-        ;; modus-themes-to-toggle '(modus-operandi-deuteranopia modus-vivendi-deuteranopia)
-        ;; modus-themes-to-toggle '(modus-operandi-tritanopia modus-vivendi-tritanopia)
-        modus-themes-to-rotate modus-themes-items
         modus-themes-mixed-fonts t
         modus-themes-variable-pitch-ui t
         modus-themes-italic-constructs t
@@ -206,11 +201,14 @@ function."
 (use-package kaolin-themes
   :ensure t)
 
+(use-package ef-themes
+  :ensure t)
+
 (use-package circadian
   :ensure t
   :config
-  (setq circadian-themes '(("5:00" . modus-operandi)
-                           ("19:30" . modus-vivendi)))
+  (setq circadian-themes '(("5:00" . ef-summer)
+                           ("19:30" . kaolin-dark)))
   (circadian-setup))
 
 ;;;;; Fontaine (font configurations)
