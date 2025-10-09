@@ -4,6 +4,10 @@
 ;;; Core
 (defconst shl--cache-dir (concat user-emacs-directory ".cache/"))
 
+(defconst shl--code-reference-dir
+  (expand-file-name "~/data/resources/code-reference/")
+  "Directory for cloned reference code repositories.")
+
 (add-to-list 'load-path (concat user-emacs-directory "lisp/"))
 
 ;;----------------------------------------------------------------------
@@ -30,6 +34,8 @@ function advice."
                    (cancel-timer throttle-timer)
                    (setq throttle-timer nil)))))))))
 
+
+
 (defun timeout--debounce-advice (&optional delay default)
   "Return a function that debounces its argument function.
 
@@ -38,6 +44,7 @@ value of the function when called.
 
 This is intended for use as function advice."
   (let ((debounce-timer nil)
+
         (delay (or delay 0.50)))
     (lambda (orig-fn &rest args)
       "Debounce calls to this function."
@@ -210,8 +217,8 @@ function."
 (use-package circadian
   :ensure t
   :config
-  (setq circadian-themes '(("5:00" . zenburn)
-                           ("19:30" . zenburn)))
+  (setq circadian-themes '(("5:00" . kaolin-aurora)
+                           ("19:30" . kaolin-aurora)))
   (circadian-setup))
 
 ;;;;; Fontaine (font configurations)
@@ -424,140 +431,18 @@ the unwritable tidbits."
 ;;; Project
 (use-package project
   :ensure nil
-  :general
-  ("C-x p p" '(project-switch-project :which-key "switch")
-   "C-x p f" '(project-find-file      :which-key "find file")
-   "C-x p r" '(shl/project-ripgrep    :which-key "ripgrep")
-   "C-x p b" '(shl/project-buffers    :which-key "buffers")
-   "C-x p B" '(shl/project-switch-to-buffer :which-key "consult buffer")
-   "C-x p k" '(shl/project-kill-buffers :which-key "kill bufs")
-   "C-x p d" '(shl/project-open-dirvish :which-key "dirvish root")
-   "C-x p s" '(shl/project-scratch    :which-key "scratch")
-   "C-x p n" '(shl/project-org-note   :which-key "note")
-   "C-x p c" '(shl/project-compilation :which-key "compile")
-   "C-x p S" '(shl/project-shell      :which-key "shell")
-   "C-x p E" '(shl/project-eshell     :which-key "eshell")
-   "C-x p j" '(shl/project-just-target :which-key "just target")
-   "C-x p t" '(shl/project-pytest-file :which-key "pytest")
-   "C-x p l" '(shl/project-pytest-last-failed :which-key "pytest last")
-   "C-x p R" '(shl/project-ruff-check :which-key "ruff")
-   "C-x p N" '(shl/project-drop-note :which-key "quick note")
-   "C-x p o" '(shl/project-chat-browse :which-key "chats"))
-
   :init
-  (defun shl/project-root (&optional proj)
-    (expand-file-name (project-root (or proj (project-current t)))))
+  (defun shl/setup-project-exclusions ()
+    "Exclude the code reference directory from known projects."
+    (let ((excluded-path (expand-file-name shl--code-reference-dir)))
+      ;; Ensure the path ends with a slash for precise matching
+      (unless (string-suffix-p "/" excluded-path)
+	(setq excluded-path (concat excluded-path "/")))
+      ;; Add the path to the exclusion list, avoiding duplicates.
+      (add-to-list 'project-list-exclude
+                   (regexp-quote (concat excluded-path "*")))))
 
-  (defun shl/project-open-dirvish ()
-    (interactive)
-    (dirvish (shl/project-root)))
-
-  (defun shl/project-ripgrep (&optional initial)
-    (interactive)
-    (let ((dir (shl/project-root)))
-      (let ((default-directory dir))
-	(consult-ripgrep dir initial))))
-
-  (defun shl/project-buffers ()
-    (interactive)
-    (consult-buffer (project-buffers (project-current t))))
-
-  (defun shl/project-kill-buffers ()
-    (interactive)
-    (let* ((proj (project-current t))
-           (bufs (project-buffers proj)))
-	  (when (yes-or-no-p (format "Kill %d project buffers? " (length bufs)))
-	    (mapc #'kill-buffer bufs)
-	    (message "Killed project buffers."))))
-
-  (defun shl/project-scratch ()
-    "Create (or switch to) a project-local scratch buffer."
-    (interactive)
-    (let* ((root (shl/project-root))
-           (name (format "*scratch:%s/" (file-name-nondirectory (directory-file-name root)))))
-	  (with-current-buffer (get-buffer-create name)
-	    (unless (derived-mode-p 'python-base-mode 'prog-mode 'text-mode 'org-mode)
-              (text-mode))
-	    (setq default-directory root)
-	    (pop-to-buffer (current-buffer)))))
-
-  (defun shl/project-org-note ()
-    "Capture a project note into a central Org file with a link."
-    (interactive)
-    (let* ((root (shl/project-root))
-           (title (file-name-nondirectory (directory-file-name root)))
-           (file (expand-file-name "project-notes.org" org-directory)))
-	  (with-current-buffer (find-file-noselect file)
-	    (goto-char (point-max))
-	    (unless (bolp) (insert "\n"))
-	    (insert (format "/ %s (%s)\n:CREATED: %s\n\n"
-			    title root (format-time-string "%F %T")))
-	    (save-buffer))
-	  (find-file file)
-	  (recenter)))
-
-  (defun shl/project-compilation ()
-    (interactive)
-    (let ((default-directory (shl/project-root)))
-      (call-interactively #'compile)))
-
-  (defun shl/project-shell ()
-    (interactive)
-    (let ((default-directory (shl/project-root)))
-      (shell (generate-new-buffer-name (format "*shell:%s/" (file-name-nondirectory (directory-file-name default-directory)))))))
-
-  (defun shl/project-eshell ()
-    (interactive)
-    (let ((default-directory (shl/project-root)))
-      (eshell t)))
-
-  ;; Python oriented helpers
-  (defun shl/project-pytest-file ()
-    (interactive)
-    (let ((default-directory (shl/project-root)))
-      (compile "uv run pytest -q")))
-
-  (defun shl/project-pytest-last-failed ()
-    (interactive)
-    (let ((default-directory (shl/project-root)))
-      (compile "uv run pytest -q --last-failed")))
-
-  (defun shl/project-ruff-check ()
-    (interactive)
-    (let ((default-directory (shl/project-root)))
-      (compile "uv run ruff check --fix .")))
-
-  ;; just integration (assumes shl/just-run already defined; fallback)
-  (defun shl/project-just-target ()
-    (interactive)
-    (let ((default-directory (shl/project-root)))
-      (if (fboundp 'shl/just-run) (call-interactively #'shl/just-run)
-	(message "No shl/just-run function defined."))))
-
-  ;; GPTel chat browsing scoped to project (open chat dir of project if you ever isolate them)
-  ;; For now reuse global chat open:
-  (defun shl/project-chat-browse ()
-    (interactive)
-    (shl/gptel-chat-open))
-
-  (defun shl/project-drop-note (text)
-    "Append TEXT to a project-local NOTES.org file."
-    (interactive "sNote: ")
-    (let* ((root (shl/project-root))
-           (file (expand-file-name "NOTES.org" root)))
-	  (with-temp-buffer
-	    (when (file-exists-p file)
-	      (insert-file-contents file))
-	    (goto-char (point-max))
-	    (unless (bolp) (insert "\n"))
-	    (insert (format "/ %s\n%s\n" (format-time-string "%F %T") text))
-	    (write-region (point-min) (point-max) file))
-	  (message "Note added.")))
-
-  (defun shl/project-switch-to-buffer ()
-    (interactive)
-    (let ((project-current-inhibit-prompt t))
-      (consult-buffer (project-buffers (project-current t)))))
+;; Call the function after project.el is loaded.
   :custom
   ;; Persist list of known projects
   (project-list-file (expand-file-name "projects.eld" user-emacs-directory))
@@ -566,32 +451,8 @@ the unwritable tidbits."
   ;; Extend auto-discovery (add pyproject + justfile)
   (project-vc-extra-root-markers '("pyproject.toml" "justfile" "Justfile" "requirements.txt"))
   ;; Don’t treat large vendored dirs as part of file indexing
-  (project-vc-ignores '("dist" "build" ".mypy_cache" ".ruff_cache" ".pytest_cache" ".direnv" ".venv" "__pycache__"))
-  :config
-  ;; Optional: prune dead project entries on startup
-  ;; (defun shl/project--prune-dead ()
-  ;;   (setq project--list
-  ;;         (cl-remove-if-not
-  ;;          (lambda (entry) (file-directory-p (car entry)))
-  ;;          project--list))
-  ;;   (project--write-project-list))
-  ;; (add-hook 'emacs-startup-hook #'shl/project--prune-dead)
+  (project-vc-ignores '("dist" "build" ".mypy_cache" ".ruff_cache" ".pytest_cache" ".direnv" ".venv" "__pycache__")))
 
-  (setq project-switch-commands
-	'((?f "Find file" project-find-file)
-          (?d "Dirvish"   shl/project-open-dirvish)
-          (?b "Buffers"   shl/project-buffers)
-          (?g "Ripgrep"   shl/project-ripgrep)
-          (?s "Shell"     shl/project-shell)
-          (?e "Eshell"    shl/project-eshell)
-          (?c "Compile"   shl/project-compilation)
-          (?t "Pytest file" shl/project-pytest-file)
-          (?l "Pytest last failed" shl/project-pytest-last-failed)
-          (?r "Ruff check" shl/project-ruff-check)
-          (?j "just target" shl/project-just-target)
-          (?k "Kill buffers" shl/project-kill-buffers)
-          (?n "Scratch"   shl/project-scratch)
-          (?o "Org note"  shl/project-org-note))))
 
 (use-package all-the-icons
   :ensure t
@@ -601,7 +462,7 @@ the unwritable tidbits."
 ;;; Dired
 (use-package dired
   :ensure nil
-  :commands (dired)
+  :commands (dired dired-jump dired-jump-other-window)
   :custom
   (dired-listing-switches "-alh --group-directories-first")
   (dired-recursive-deletes 'always)
@@ -610,80 +471,6 @@ the unwritable tidbits."
   (dired-kill-when-opening-new-dired-buffer t)
   :config
   (add-hook 'dired-mode-hook #'hl-line-mode))
-
-(use-package dirvish
-  :ensure t
-  :init
-  (dirvish-override-dired-mode)          ; replace dired everywhere
-
-  (defun shl/dirvish-preview-active-p ()
-    "Return non-nil if a Dirvish preview window is currently shown."
-    (when (fboundp 'dirvish--get-preview-window)
-      (ignore-errors
-	(let* ((dv (and (fboundp 'dirvish-curr) (dirvish-curr)))
-               (win (and dv (dirvish--get-preview-window dv))))
-              (and win (window-live-p win))))))
-  (defun shl/dirvish-ensure-preview ()
-    (when (and (derived-mode-p 'dired-mode) (not (shl/dirvish-preview-active-p)))
-      (dirvish-toggle-preview)))
-  :general
-  (:keymaps 'dirvish-mode-map
-	    ;; Navigation / structure
-	    "TAB"   #'dirvish-subtree-toggle
-	    "M-RET" #'dirvish-subtree-toggle
-	    "h"     #'dirvish-history-jump
-	    "H"     #'dirvish-history-go-back
-	    "L"     #'dirvish-history-go-forward
-	    ;; Preview / info
-	    "SPC"   #'dirvish-toggle-preview
-	    "f"     #'dirvish-file-info-menu
-	    "y"     #'dirvish-yank-menu
-	    "s"     #'dirvish-quicksort
-	    "n"     #'dirvish-narrow
-	    ;; Search (Consult)
-	    "/"     (lambda () (interactive)
-		      (consult-ripgrep (dired-current-directory)))
-	    ;; Utilities
-	    "?"     #'dirvish-dispatch
-	    "q"     #'dirvish-quit
-	    "!"     #'async-shell-command
-	    "C-c C-e" #'wdired-change-to-wdired-mode)
-
-  :custom
-  (dirvish-use-header-line t)
-  (dirvish-reuse-session t)
-  (dirvish-hide-details t)
-  (dirvish-subtree-always-show-state t)
-  (dirvish-cache-dir (expand-file-name "dirvish-cache/" user-emacs-directory))
-  ;; Attributes shown in listing (adjust to taste)
-  (dirvish-attributes '(subtree-state all-the-icons file-time file-size git-msg))
-  ;; What preview handlers to try (order matters)
-  (dirvish-preview-dispatchers '(image gif pdf epub archive code text))
-  (dirvish-mode-line-format '(:left (path) :right (omit yank index)))
-  :config
-  (add-hook 'dirvish-directory-view-mode-hook #'hl-line-mode)
-  ;; Optional: faster navigation feel
-  (setq mouse-1-click-follows-link nil)
-  :config
-
-  (defun shl/dirvish-project-root ()
-    "Open current project root in Dirvish."
-    (interactive)
-    (if-let ((proj (project-current)))
-	(dirvish (project-root proj))
-      (user-error "No project found")))
-  (shl/leader "f d" '(shl/dirvish-project-root :which-key "project dir"))
-
-  :config
-  (when (not (require 'all-the-icons nil t))
-    (setq dirvish-attributes (remove 'all-the-icons dirvish-attributes))))
-
-
-;; Optional: all-the-icons (guard if not installed)
-
-
-;; Helpful extra packages (optional):
-(use-package dirvish-extras :after dirvish :ensure nil)
 
 ;;;; Minibuffer Completion
 (use-package vertico
@@ -1036,84 +823,143 @@ Returns nil if nothing is found."
 
 ;;; Workspaces
 (use-package tab-bar
-  :defer
-  :bind
-  :custom-face
-  (tab-bar-tab ((t (:inherit font-lock-function-name-face))))
+  :ensure nil
+  :after (project)
+  :commands (tab-bar-new-tab
+             tab-bar-switch-to-tab
+             tab-bar-switch-to-next-tab
+             tab-bar-switch-to-prev-tab)
+  :custom
+  (tab-bar-show 1)
+  (tab-bar-tab-hints t) ;; show numbers in tabs
+  ;; Unless another file/buffer is designated, start from workspace scratch buffer
+  (tab-bar-new-tab-choice "*scratch*")
+  (tab-bar-select-tab-modifiers '(super))
+  (tab-bar-close-tab-select 'recent)
+  (tab-bar-new-tab-to 'rightmost)
+  (tab-bar-close-last-tab-choice 'tab-bar-mode-disable)
+  (tab-bar-tab-name-format-function #'shl--tab-bar-tab-name-format)
+  (tab-bar-new-button nil)
+  (tab-bar-close-button nil)
+  (tab-bar-auto-width nil)
+  (tab-bar-format '(tab-bar-format-history
+                    tab-bar-format-tabs
+                    shl--tab-bar-suffix
+                    tab-bar-format-add-tab))
   :config
-  (tab-bar-history-mode 1)
-  (defun tab-bar-format-menu-bar ()
-    "Produce the Menu button for the tab bar that shows the menu bar."
-    `((menu-bar menu-item (propertize " 𝝺 " 'face 'tab-bar-tab-inactive)
-                tab-bar-menu-bar :help "Menu Bar")))
-  (defun my/tab-bar-tab-name-format-comfortable (tab i)
-    (propertize (concat " " (tab-bar-tab-name-format-default tab i) " ")
-                'face (funcall tab-bar-tab-face-function tab)))
-  (setq tab-bar-tab-name-format-function #'my/tab-bar-tab-name-format-comfortable)
-  
-  ;; Make items in tab-bar-format-global clickable
-  (define-advice tab-bar-format-global (:override () with-buttons)
-    (let ((strings (split-string (format-mode-line global-mode-string))))
-      (mapcan (lambda (s)
-                (list
-                 `(sep menu-item ,(tab-bar-separator) ignore)
-                 `(global menu-item ,s tab-bar-format-global-action)))
-              strings)))
-  
-  (defun tab-bar-format-global-action (event)
-    (interactive "e")
-    (let ((posn (event-start event)))
-      (when-let* ((str (posn-string posn))
-                  (str-button (get-text-property (cdr str) 'button (car str))))
-	(button-activate str t))))
-  
-  (setq tab-bar-format '(tab-bar-format-menu-bar
-                         ;; tab-bar-format-history
-                         tab-bar-format-tabs
-                         tab-bar-separator
-                         tab-bar-format-add-tab
-                         tab-bar-format-align-right
-                         tab-bar-format-global)
-        tab-bar-close-button-show nil)
 
-  (add-variable-watcher
-   'tab-bar-show
-   (defun my/tab-bar-show--handle-global-mode-string
-       (sym newval op _buf)
-     (when (eq op 'set)
-       (if newval
-           (progn (add-to-list 'tab-bar-format 'tab-bar-format-global 'append)
-                  (tab-bar--define-keys))
-         (set 'tab-bar-format (delq 'tab-bar-format-global tab-bar-format))))))
+  ;; https://christiantietze.de/posts/2022/02/emacs-tab-bar-numbered-tabs/
+  (defvar shl-tab-bar--circle-numbers-alist
+    '((0 . "⓪")
+      (1 . "①")
+      (2 . "②")
+      (3 . "③")
+      (4 . "④")
+      (5 . "⑤")
+      (6 . "⑥")
+      (7 . "⑦")
+      (8 . "⑧")
+      (9 . "⑨")
+      (10 . "⑩")
+      (11 . "⑪")
+      (12 . "⑫")
+      (13 . "⑬")
+      (14 . "⑭")
+      (15 . "⑮"))
 
-  (defun my/tab-bar-name ()
-    "Use project as tab name."
-    (let ((dir (expand-file-name
-                ;; (or (if (fboundp 'project-root)
-                ;;         (project-root (project-current)))
-                ;;     default-directory)
-                default-directory
-                )))
-      (or
-       (and dir
-            (let ((name (file-name-nondirectory (substring dir 0 -1))))
-              ;; (substring dir (1+ (string-match "/[^/]+/$" dir)) -1)
-              (truncate-string-to-width name tab-bar-tab-name-truncated-max nil ? )))
-       (buffer-name))))
-  (timeout-throttle! #'my/tab-bar-name 0.6)
-  
-  (setq  tab-bar-close-last-tab-choice 'tab-bar-mode-disable
-         tab-bar-show                   '0 ;; (when (version< "28.0" emacs-version) 1)
-         tab-bar-tab-name-truncated-max 24
-         tab-bar-new-tab-choice        "*scratch*"
-         tab-bar-tab-name-function #'tab-bar-tab-name-current-with-count)
+    "Alist of integers to strings of circled unicode numbers.")
+  (defun shl--tab-bar-tab-name-format (tab i)
+    (let ((current-p (eq (car tab) 'current-tab))
+          (tab-num (if (and tab-bar-tab-hints (< i 16))
+                       (alist-get i shl-tab-bar--circle-numbers-alist) "")))
+      (propertize
+       (concat
+        " "
+        tab-num
+        (propertize " " 'display '(space :width (4)))
+        (alist-get 'name tab)
+        (or (and tab-bar-close-button-show
+                 (not (eq tab-bar-close-button-show
+                          (if current-p 'non-selected 'selected)))
+                 tab-bar-close-button)
+            "")
+        (propertize " " 'display '(space :width (4))))
+       'face (funcall tab-bar-tab-face-function tab))))
 
-  (setq tab-bar-select-tab-modifiers '(meta hyper))
 
-  (defun my/tab-bar-show-hide-tabs ()
-    "Show or hide tabs."
+  ;; See https://github.com/rougier/nano-modeline/issues/33
+  (defun shl--tab-bar-suffix ()
+    "Add empty space.
+This ensures that the last tab's face does not extend to the end
+of the tab bar."
+    " ")
+
+
+  ;; https://protesilaos.com/codelog/2020-08-03-emacs-custom-functions-galore/
+  (defun shl-tab-bar-select-tab-dwim ()
+    "Do-What-I-Mean function for getting to a `tab-bar-mode' tab.
+If no other tab exists, create one and switch to it.  If there is
+one other tab (so two in total) switch to it without further
+questions.  Otherwise use completion to select the tab."
     (interactive)
-    (setq tab-bar-show (if tab-bar-show nil 1))))
+    (let ((tabs (mapcar (lambda (tab)
+                          (alist-get 'name tab))
+                        (tab-bar--tabs-recent))))
+      (cond ((eq tabs nil)
+             (tab-new))
+            ((eq (length tabs) 1)
+             (tab-next))
+            (t
+             (tab-bar-switch-to-tab
+              (completing-read "Select tab: " tabs nil t)))))))
+
+;;;; Tab Workspaces
+(use-package tabspaces
+  :ensure (tabspaces :type git :host github :repo "mclear-tools/tabspaces")
+  ;; Add some functions to the project map
+  :bind (:map project-prefix-map
+         ("p" . tabspaces-open-or-create-project-and-workspace))
+  :hook (emacs-startup . tabspaces-mode)
+  :custom
+  (tabspaces-use-filtered-buffers-as-default t)
+  (tabspaces-default-tab "Home")
+  :config
+  (defun shl--consult-tabspaces ()
+    "Deactivate isolated buffers when not using tabspaces."
+    (require 'consult)
+    (cond (tabspaces-mode
+           ;; hide full buffer list (still available with "b")
+           (consult-customize consult--source-buffer :hidden t :default nil)
+           (add-to-list 'consult-buffer-sources 'consult--source-workspace))
+          (t
+           (consult-customize consult--source-buffer :hidden nil :default t)
+           (setq consult-buffer-sources (remove #'consult--source-workspace consult-buffer-sources)))))
+  (add-hook 'tabspaces-mode-hook #'shl--consult-tabspaces))
+
+;;;;; Consult Isolated Workspace Buffers
+;; Filter Buffers for Consult-Buffer
+(defun shl-buff-filter (buffer)
+  (let ((blst (cl-remove (buffer-name) (frame-parameter nil 'buffer-list))))
+    (memq buffer blst)))
+
+(with-eval-after-load 'consult
+  ;; hide full buffer list (still available with "b" prefix)
+  (consult-customize consult--source-buffer :hidden t :default nil)
+  ;; set consult-workspace buffer list
+  (defvar consult--source-workspace
+    (list :name     "Workspace Buffers"
+          :narrow   ?w
+          :history  'buffer-name-history
+          :category 'buffer
+          :state    #'consult--buffer-state
+          :default  t
+          :items    (lambda () (consult--buffer-query
+                           :predicate #'tabspaces--local-buffer-p
+                           :sort 'visibility
+                           :as #'buffer-name)))
+
+    "Set workspace buffer list for consult-buffer."))
+
 
 ;;; Compilation
 ;; Colorful Compilation
@@ -1164,17 +1010,160 @@ Returns nil if nothing is found."
   :ensure t)
 
 (use-package magit
-  :ensure t
-  :bind (("C-x g" . magit-status)         ;; Open Magit status buffer
-         ("C-x M-g" . magit-dispatch))   ;; Open Magit's dispatcher
+  :commands
+  (magit-blame-mode
+   magit-commit
+   magit-diff
+   magit-log
+   magit-status)
+  :hook (git-commit-mode . turn-on-flyspell)
+  :bind ((:map magit-log-mode-map
+          ;; Keybindings for use with updating packages interactively
+          ("Q" . #'exit-recursive-edit)))
+  :general
+  (shl/leader
+    "g g" '(magit-dispatch :which-key "magit dispatch")
+    "g s" '(magit-status :which-key "magit s"))
+  :preface
+  (defun shl-display-magit-in-other-window (buffer)
+  (if (one-window-p)
+      (progn
+        (split-window-right)
+        (other-window 1)
+        (display-buffer buffer
+                        '((display-buffer-reuse-window))))
+    (magit-display-buffer-traditional buffer)))
+  :init
+  ;; Suppress the message we get about "Turning on
+  ;; magit-auto-revert-mode" when loading Magit.
+  (setq magit-no-message '("Turning on magit-auto-revert-mode..."))
   :config
-  ;; Ensure Magit doesn't open too many windows by default
-  (setq magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+  (setq magit-log-margin '(t "%Y-%m-%d.%H:%M:%S "  magit-log-margin-width nil 18))
+  (setq magit-refresh-status-buffer t)
+  ;; Fine grained diffs
+  (setq magit-diff-refine-hunk t)
+  ;; control magit initial visibility
+  (setq magit-section-initial-visibility-alist
+        '((stashes . hide) (untracked . hide) (unpushed . hide) ([unpulled status] . show)))
+  (global-git-commit-mode t) ; use emacs as editor for git commits
+
+  ;; refresh status buffer
+  (add-hook 'after-save-hook 'magit-after-save-refresh-status t)
+  ;; no magit header line as it conflicts w/bespoke-modeline
+  (advice-add 'magit-set-header-line-format :override #'ignore)
+  ;; display magit setting
+  (setq magit-display-buffer-function #'shl-display-magit-in-other-window))
 
 (use-package magit-todos
   :ensure t
   :after magit
   :config (magit-todos-mode 1))
+
+(defun shl/clone-and-switch (repo-identifier)
+  "Clone a Git repository if needed, then switch to it as a project.
+
+The repository can be a full URL or a GitHub \"owner/repo\" shorthand.
+It is cloned into `shl--code-reference-dir' if it doesn't
+already exist.
+
+Finally, it runs `project-switch-project` on the repository's
+local directory."
+  (interactive "sSwitch to repo (URL or owner/repo): ")
+  (let* ((full-url (if (string-match-p "://" repo-identifier)
+                       repo-identifier
+                     (format "https://github.com/%s.git" repo-identifier)))
+         (repo-name (file-name-sans-extension (file-name-nondirectory full-url)))
+         (destination (expand-file-name repo-name shl--code-reference-dir)))
+
+    (if (file-exists-p destination)
+        ;; If repo exists, just switch to it.
+        (progn
+          (message "Repository '%s' already exists. Switching." repo-name)
+          (project-switch-project destination))
+
+      ;; If repo does not exist, clone it first.
+      (make-directory (file-name-directory destination) t)
+      (let ((process-connection-type nil)) ; Use a pipe
+        (message "Cloning %s into %s..." repo-name destination)
+        (let* ((buffer (generate-new-buffer (format "*cloning %s*" repo-name)))
+               (proc (start-process "git-clone" buffer "git" "clone" "--depth=1" full-url destination)))
+          (set-process-sentinel
+           proc
+           (lambda (p e)
+             (with-current-buffer (process-buffer p)
+               (let ((exit-status (process-exit-status p)))
+                 (if (zerop exit-status)
+                     (progn
+                       (message "Successfully cloned %s. Switching project." repo-name)
+                       ;; Switch project on success
+                       (project-switch-project destination)
+                       (run-with-timer 1 nil #'kill-buffer (current-buffer)))
+                   (progn
+                     (pop-to-buffer (current-buffer))
+                     (message "Failed to clone %s. See buffer %s for details."
+                              repo-name (buffer-name)))))))))))))
+
+(defun shl/switch-to-code-reference-project ()
+  "Select a project from `shl--code-reference-dir' and switch to it."
+  (interactive)
+  (let* ((base-dir shl--code-reference-dir)
+         (directories (when (file-directory-p base-dir)
+                        ;; Get full paths, excluding '.' and '..'
+                        (directory-files base-dir t "^[^.]" t))))
+    (unless directories
+      (user-error "No repositories found in %s" base-dir))
+
+    ;; Create an alist: (("repo-name" . "/full/path/to/repo") ...)
+    (let* ((candidates (mapcar (lambda (dir)
+                                 (cons (file-name-nondirectory dir) dir))
+                               (seq-filter #'file-directory-p directories)))
+           (selection (consult--read candidates
+                                     :prompt "Switch to project: "
+                                     :require-match t)))
+      (when selection
+        ;; =selection= is the full path (the cdr of the selected pair)
+        (project-switch-project selection)))))
+
+(shl/leader
+  "g r" '(shl/clone-and-switch :which-key "clone ref repo"))
+
+
+(use-package diff-hl
+  :ensure t
+  :hook
+  ((prog-mode . diff-hl-mode)
+   (text-mode . diff-hl-mode)
+   (dired-mode . diff-hl-dired-mode)
+   (magit-pre-refresh . diff-hl-magit-pre-refresh)
+   (magit-post-refresh . diff-hl-magit-post-refresh))
+  :custom
+  (diff-hl-side 'left)
+  (diff-hl-fringe-bmp-function 'shl--diff-hl-fringe-bmp-from-type)
+  (diff-hl-fringe-face-function 'shl--diff-hl-fringe-face-from-type)
+  (diff-hl-margin-symbols-alist
+   '((insert . "┃")
+     (delete . "┃")
+     (change . "┃")
+     (unknown . "?")
+     (ignored . "i")))
+  :init
+  (defun shl--diff-hl-fringe-face-from-type (type _pos)
+    (intern (format "shl--diff-hl-%s" type)))
+
+  (defun shl--diff-hl-fringe-bmp-from-type(type _pos)
+    (intern (format "shl--diff-hl-%s" type)))
+
+  (defun shl--diff-hl-set-render-mode ()
+    (diff-hl-margin-mode (if window-system -1 1)))
+  :config
+  (diff-hl-margin-mode 1)
+  (define-fringe-bitmap 'diff-hl-insert
+    [#b00000011] nil nil '(center repeated))
+  (define-fringe-bitmap 'diff-hl-change
+    [#b00000011] nil nil '(center repeated))
+  (define-fringe-bitmap 'diff-hl-delete
+    [#b00000011] nil nil '(center repeated)))
+  
 
 ;;; Languages
 ;;; YAML

@@ -83,6 +83,7 @@
   (evil-collection-init))
 
 (use-package evil-nerd-commenter
+  :ensure t
   :general
   (general-t 'normal 'override "c" #'evilnc-comment-or-uncomment-lines)
   ("C-/" #'evilnc-comment-or-uncomment-lines)
@@ -232,6 +233,13 @@
     "g g" '(magit-status :which-key "magit")
     "g s" '(magit-stage :which-key "stage")))
 
+(use-package evil-org
+  :ensure t
+  :after org
+  :hook (org-mode . (lambda () evil-org-mode))
+  :config
+  (require 'evil-org-agenda)
+  (evil-org-agenda-set-keys))
 
 (provide 'init-evil)
 ;;; init-evil.el ends here
