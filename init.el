@@ -10,134 +10,9 @@
 
 (add-to-list 'load-path (concat user-emacs-directory "lisp/"))
 
-;;----------------------------------------------------------------------
-;; TIMEOUT: GENERIC DEBOUNCE & THROTTLE
-;;----------------------------------------------------------------------
-(defun timeout--throttle-advice (&optional timeout)
-  "Return a function that throttles its argument function.
+(require 'init-optim)
+(require 'init-elpaca)
 
-THROTTLE defaults to 1.0 seconds. This is intended for use as
-function advice."
-  (let ((throttle-timer)
-        (timeout (or timeout 1.0))
-        (result))
-    (lambda (orig-fn &rest args)
-      "Throttle calls to this function."
-      (if (timerp throttle-timer)
-          result
-        (prog1
-            (setq result (apply orig-fn args))
-          (setq throttle-timer
-                (run-with-timer
-                 timeout nil
-                 (lambda ()
-                   (cancel-timer throttle-timer)
-                   (setq throttle-timer nil)))))))))
-
-
-
-(defun timeout--debounce-advice (&optional delay default)
-  "Return a function that debounces its argument function.
-
-Delay defaults to 0.50 seconds.  DEFAULT is the immediate return
-value of the function when called.
-
-This is intended for use as function advice."
-  (let ((debounce-timer nil)
-
-        (delay (or delay 0.50)))
-    (lambda (orig-fn &rest args)
-      "Debounce calls to this function."
-      (if (timerp debounce-timer)
-          (timer-set-idle-time debounce-timer delay)
-        (prog1 default
-          (setq debounce-timer
-                (run-with-idle-timer
-                 delay nil
-                 (lambda (buf)
-                   (cancel-timer debounce-timer)
-                   (setq debounce-timer nil)
-                   (with-current-buffer buf
-                     (apply orig-fn args)))
-                 (current-buffer))))))))
-
-;;;###autoload
-(defun timeout-debounce! (func &optional delay default)
-  "Debounce FUNC by DELAY seconds.
-
-This advises FUNC, when called (interactively or from code), to
-run after DELAY seconds. If FUNC is called again within this time,
-the timer is reset.
-
-DELAY defaults to 0.5 seconds. Using a delay of 0 resets the
-function.
-
-DEFAULT is the immediate return value of the function when called."
-  (if (and delay (= delay 0))
-      (advice-remove func 'debounce)
-    (advice-add func :around (timeout--debounce-advice delay default)
-                '((name . debounce)
-                  (depth . -99)))))
-
-;;;###autoload
-(defun timeout-throttle! (func &optional throttle)
-  "Throttle FUNC by THROTTLE seconds.
-
-This advises FUNC so that it can run no more than once every
-THROTTLE seconds.
-
-THROTTLE defaults to 1.0 seconds. Using a throttle of 0 resets the
-function."
-  (if (= throttle 0)
-      (advice-remove func 'throttle)
-    (advice-add func :around (timeout--throttle-advice throttle)
-                '((name . throttle)
-                  (depth . -98)))))
-
-;;; Package Manager
-(defvar elpaca-installer-version 0.11)
-(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
-(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
-(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
-(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                              :ref nil :depth 1 :inherit ignore
-                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                              :build (:not elpaca--activate-package)))
-(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
-       (build (expand-file-name "elpaca/" elpaca-builds-directory))
-       (order (cdr elpaca-order))
-       (default-directory repo))
-  (add-to-list 'load-path (if (file-exists-p build) build repo))
-  (unless (file-exists-p repo)
-    (make-directory repo t)
-    (when (<= emacs-major-version 28) (require 'subr-x))
-    (condition-case-unless-debug err
-        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
-                                                  ,@(when-let* ((depth (plist-get order :depth)))
-                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
-                                                  ,(plist-get order :repo) ,repo))))
-                  ((zerop (call-process "git" nil buffer t "checkout"
-                                        (or (plist-get order :ref) "--"))))
-                  (emacs (concat invocation-directory invocation-name))
-                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-                  ((require 'elpaca))
-                  ((elpaca-generate-autoloads "elpaca" repo)))
-            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
-          (error "%s" (with-current-buffer buffer (buffer-string))))
-      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
-  (unless (require 'elpaca-autoloads nil t)
-    (require 'elpaca)
-    (elpaca-generate-autoloads "elpaca" repo)
-    (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
-(add-hook 'after-init-hook #'elpaca-process-queues)
-(elpaca `(,@elpaca-order))
-
-;; Install use-package support
-(elpaca elpaca-use-package
-  ;; Enable use-package :ensure support for Elpaca.
-  (elpaca-use-package-mode))
 
 ;;; Org mode
 (use-package org
@@ -161,6 +36,9 @@ function."
   ;; Local leader (per major mode if you want later)
   (general-create-definer shl/local-leader
     :prefix "C-c m")) 
+
+(require 'init-ui)
+(require 'init-vc)
 
 (with-eval-after-load 'which-key
   (which-key-add-key-based-replacements
@@ -211,79 +89,7 @@ function."
 (use-package ef-themes
   :ensure t)
 
-(use-package zenburn-theme
-  :ensure t)
 
-(use-package circadian
-  :ensure t
-  :config
-  (setq circadian-themes '(("5:00" . kaolin-aurora)
-                           ("19:30" . kaolin-aurora)))
-  (circadian-setup))
-
-;;;;; Fontaine (font configurations)
-;; Read the manual: <https://protesilaos.com/emacs/fontaine>
-(use-package fontaine
-  :ensure t
-  :hook
-  ;; Persist the latest font preset when closing/starting Emacs.
-  ((elpaca-after-init . fontaine-mode)
-   (elpaca-after-init . (lambda ()
-			  (fontaine-set-preset 'regular-light))))
-
-  :general
-  (shl/leader
-    "t f" '(shl/fontaine-toggle :which-key "fontaine toggle"))
-  :init
-  (defun shl/fontaine-toggle ()
-    "Toggle between =regular-light' and =regular-dark' fontaine presets."
-    (interactive)
-    (let* ((current (and (boundp 'fontaine-current-preset) fontaine-current-preset))
-           (next (if (eq current 'regular-light) 'regular-dark 'regular-light)))
-	  (fontaine-set-preset next)
-	  (message "Fontaine preset set to: %s" next)))
-
-    :config
-  ;; And this is for Emacs28.
-  (setq-default text-scale-remap-header-line t)
-
-  ;; This is the default value.  Just including it here for
-  ;; completeness.
-  (setq fontaine-latest-state-file (locate-user-emacs-file "fontaine-latest-state.eld"))
-
-  ;; The font family is my design: <https://github.com/protesilaos/aporetic>.
-  (setq fontaine-presets
-        '((small
-           :default-height 80)
-          (regular-dark
-           :default-family "Aporetic Serif Mono"
-           :default-height 110
-	   :default-weight semibold
-           :fixed-pitch-family "Aporetic Serif Mono"
-           :variable-pitch-family "Aporetic Sans")
-          (regular-light
-           :default-family "Aporetic Serif Mono"
-           :default-height 110
-	   :default-weight semilight
-           :fixed-pitch-family "Aporetic Serif Mono"
-           :variable-pitch-family "Aporetic Sans"))))
-
-;;;; Font Lock
-(use-package font-lock
-  :ensure nil
-  :defer 1
-  :custom
-  ;; Max font lock decoration (set nil for less)
-  (font-lock-maximum-decoration t)
-  ;; No limit on font lock
-  (font-lock-maximum-size nil))
-
-;; Set default line spacing. If the value is an integer, it indicates
-;; the number of pixels below each line. A decimal number is a scaling factor
-;; relative to the current window's default line height. The setq-default
-;; function sets this for all buffers. Otherwise, it only applies to the current
-;; open buffer
-(setq-default line-spacing 0.05)
 
 
 
@@ -431,28 +237,111 @@ the unwritable tidbits."
 ;;; Project
 (use-package project
   :ensure nil
-  :init
-  (defun shl/setup-project-exclusions ()
-    "Exclude the code reference directory from known projects."
-    (let ((excluded-path (expand-file-name shl--code-reference-dir)))
-      ;; Ensure the path ends with a slash for precise matching
-      (unless (string-suffix-p "/" excluded-path)
-	(setq excluded-path (concat excluded-path "/")))
-      ;; Add the path to the exclusion list, avoiding duplicates.
-      (add-to-list 'project-list-exclude
-                   (regexp-quote (concat excluded-path "*")))))
-
-;; Call the function after project.el is loaded.
+  :commands (project-find-file
+             project-switch-to-buffer
+             project-switch-project
+             project-switch-project-open-file)
+  :bind (:map project-prefix-map
+         ("P" .  project-switch-project)
+         ("t" .  shl-goto-projects)
+         ("R" .  project-remember-projects-under))
   :custom
-  ;; Persist list of known projects
-  (project-list-file (expand-file-name "projects.eld" user-emacs-directory))
-  ;; When switching, offer a command menu
-  (project-switch-use-entire-map t)
-  ;; Extend auto-discovery (add pyproject + justfile)
-  (project-vc-extra-root-markers '("pyproject.toml" "justfile" "Justfile" "requirements.txt"))
-  ;; Don’t treat large vendored dirs as part of file indexing
-  (project-vc-ignores '("dist" "build" ".mypy_cache" ".ruff_cache" ".pytest_cache" ".direnv" ".venv" "__pycache__")))
+  (project-list-file (concat shl--cache-dir "projects"))
+  (project-switch-commands '((project-find-file "Find file")
+                             (project-find-regexp "Find regexp")
+                             (project-find-dir "Find directory")
+                             (project-vc-dir "VC-Dir")
+                             (project-magit-dir "Magit status")))
+  (project-vc-extra-root-markers '(".dir-locals.el" ".project.el" "package.json" "requirements.txt" "autogen.sh"))
+  :config
+  ;; Use Ripgrep if installed
+  (when (shell-command-to-string "command rg --version")
+    (setq xref-search-program 'ripgrep))
+  (setq shl-project-dir "~/data/source/")
+  ;; remove deleted projects from list
+  (project-forget-zombie-projects))
 
+(defun shl--project-name ()
+  "Return name of project without path."
+  (file-name-nondirectory (directory-file-name (if (vc-root-dir) (vc-root-dir) "-"))))
+
+;; magit function for project
+(defun project-magit-dir ()
+  "Run magit in the current project's root."
+  (interactive)
+  (magit-status))
+;; Add to keymap
+(define-key (current-global-map) (kbd "C-x p G") #'project-magit-dir)
+
+;;;; Open project & file
+(with-eval-after-load 'project
+  (defun project-switch-project-open-file (dir)
+    "Switch to another project by running an Emacs command.
+Open file using project-find-file
+
+When called in a program, it will use the project corresponding
+to directory DIR."
+    (interactive (list (project-prompt-project-dir)))
+    (let ((default-directory dir)
+          (project-current-inhibit-prompt t))
+      (call-interactively 'project-find-file))))
+
+;;; Bookmarks
+(use-package bookmark
+  :ensure nil
+  :defer 2
+  :config
+  (setq bookmark-default-file (concat shl--cache-dir "bookmarks")))
+
+;;; New Git Project
+(defun shl-git-new-project ()
+  "Initialize a new git repo and add it to project.el's known projects."
+  (interactive)
+  (let ((project-dir (expand-file-name
+                      (read-directory-name "New project root:"))))
+    (magit-init project-dir)
+    (setq default-directory project-dir)
+    ;; make sure project.el remembers new project
+    (let ((pr (project--find-in-directory default-directory)))
+      (project-remember-project pr))))
+
+;;; Clone a Git Repo from Clipboard
+;; http://xenodium.com/emacs-clone-git-repo-from-clipboard/
+(defun shl-git-clone-clipboard-url ()
+  "Clone git URL in clipboard asynchronously and open in Dired when finishe.
+Git repo is cloned to directory set by `shl-user-elisp-dir'."
+  (interactive)
+  (cl-assert (string-match-p "^\\(http\\|https\\|ssh\\)://" (current-kill 0)) nil "No URL in clipboard")
+  (let* ((url (current-kill 0))
+         (download-dir shl-user-elisp-dir)
+         (project-dir (concat (file-name-as-directory download-dir)
+                              (file-name-base url)))
+         (default-directory download-dir)
+         (command (format "git clone %s" url))
+         (buffer (generate-new-buffer (format "*%s*" command)))
+         (proc))
+    (when (file-exists-p project-dir)
+      (if (y-or-n-p (format "%s exists. delete?" (file-name-base url)))
+          (delete-directory project-dir t)
+        (user-error "Bailed")))
+    (switch-to-buffer buffer)
+    (setq proc (start-process-shell-command (nth 0 (split-string command)) buffer command))
+    (with-current-buffer buffer
+      (setq default-directory download-dir)
+      (shell-command-save-pos-or-erase)
+      (require 'shell)
+      (shell-mode)
+      (view-mode +1))
+    (set-process-sentinel proc (lambda (process state)
+                                 (let ((output (with-current-buffer (process-buffer process)
+                                                 (buffer-string))))
+                                   (kill-buffer (process-buffer process))
+                                   (if (= (process-exit-status process) 0)
+                                       (progn
+                                         (message "finished: %s" command)
+                                         (dired project-dir))
+                                     (user-error (format "%s\n%s" command output))))))
+    (set-process-filter proc #'comint-output-filter)))
 
 (use-package all-the-icons
   :ensure t
@@ -1006,164 +895,8 @@ questions.  Otherwise use completion to select the tab."
   (exec-path-from-shell-initialize))
 
 ;;; Version Control
-(use-package transient
-  :ensure t)
 
-(use-package magit
-  :commands
-  (magit-blame-mode
-   magit-commit
-   magit-diff
-   magit-log
-   magit-status)
-  :hook (git-commit-mode . turn-on-flyspell)
-  :bind ((:map magit-log-mode-map
-          ;; Keybindings for use with updating packages interactively
-          ("Q" . #'exit-recursive-edit)))
-  :general
-  (shl/leader
-    "g g" '(magit-dispatch :which-key "magit dispatch")
-    "g s" '(magit-status :which-key "magit s"))
-  :preface
-  (defun shl-display-magit-in-other-window (buffer)
-  (if (one-window-p)
-      (progn
-        (split-window-right)
-        (other-window 1)
-        (display-buffer buffer
-                        '((display-buffer-reuse-window))))
-    (magit-display-buffer-traditional buffer)))
-  :init
-  ;; Suppress the message we get about "Turning on
-  ;; magit-auto-revert-mode" when loading Magit.
-  (setq magit-no-message '("Turning on magit-auto-revert-mode..."))
-  :config
-  (setq magit-log-margin '(t "%Y-%m-%d.%H:%M:%S "  magit-log-margin-width nil 18))
-  (setq magit-refresh-status-buffer t)
-  ;; Fine grained diffs
-  (setq magit-diff-refine-hunk t)
-  ;; control magit initial visibility
-  (setq magit-section-initial-visibility-alist
-        '((stashes . hide) (untracked . hide) (unpushed . hide) ([unpulled status] . show)))
-  (global-git-commit-mode t) ; use emacs as editor for git commits
-
-  ;; refresh status buffer
-  (add-hook 'after-save-hook 'magit-after-save-refresh-status t)
-  ;; no magit header line as it conflicts w/bespoke-modeline
-  (advice-add 'magit-set-header-line-format :override #'ignore)
-  ;; display magit setting
-  (setq magit-display-buffer-function #'shl-display-magit-in-other-window))
-
-(use-package magit-todos
-  :ensure t
-  :after magit
-  :config (magit-todos-mode 1))
-
-(defun shl/clone-and-switch (repo-identifier)
-  "Clone a Git repository if needed, then switch to it as a project.
-
-The repository can be a full URL or a GitHub \"owner/repo\" shorthand.
-It is cloned into `shl--code-reference-dir' if it doesn't
-already exist.
-
-Finally, it runs `project-switch-project` on the repository's
-local directory."
-  (interactive "sSwitch to repo (URL or owner/repo): ")
-  (let* ((full-url (if (string-match-p "://" repo-identifier)
-                       repo-identifier
-                     (format "https://github.com/%s.git" repo-identifier)))
-         (repo-name (file-name-sans-extension (file-name-nondirectory full-url)))
-         (destination (expand-file-name repo-name shl--code-reference-dir)))
-
-    (if (file-exists-p destination)
-        ;; If repo exists, just switch to it.
-        (progn
-          (message "Repository '%s' already exists. Switching." repo-name)
-          (project-switch-project destination))
-
-      ;; If repo does not exist, clone it first.
-      (make-directory (file-name-directory destination) t)
-      (let ((process-connection-type nil)) ; Use a pipe
-        (message "Cloning %s into %s..." repo-name destination)
-        (let* ((buffer (generate-new-buffer (format "*cloning %s*" repo-name)))
-               (proc (start-process "git-clone" buffer "git" "clone" "--depth=1" full-url destination)))
-          (set-process-sentinel
-           proc
-           (lambda (p e)
-             (with-current-buffer (process-buffer p)
-               (let ((exit-status (process-exit-status p)))
-                 (if (zerop exit-status)
-                     (progn
-                       (message "Successfully cloned %s. Switching project." repo-name)
-                       ;; Switch project on success
-                       (project-switch-project destination)
-                       (run-with-timer 1 nil #'kill-buffer (current-buffer)))
-                   (progn
-                     (pop-to-buffer (current-buffer))
-                     (message "Failed to clone %s. See buffer %s for details."
-                              repo-name (buffer-name)))))))))))))
-
-(defun shl/switch-to-code-reference-project ()
-  "Select a project from `shl--code-reference-dir' and switch to it."
-  (interactive)
-  (let* ((base-dir shl--code-reference-dir)
-         (directories (when (file-directory-p base-dir)
-                        ;; Get full paths, excluding '.' and '..'
-                        (directory-files base-dir t "^[^.]" t))))
-    (unless directories
-      (user-error "No repositories found in %s" base-dir))
-
-    ;; Create an alist: (("repo-name" . "/full/path/to/repo") ...)
-    (let* ((candidates (mapcar (lambda (dir)
-                                 (cons (file-name-nondirectory dir) dir))
-                               (seq-filter #'file-directory-p directories)))
-           (selection (consult--read candidates
-                                     :prompt "Switch to project: "
-                                     :require-match t)))
-      (when selection
-        ;; =selection= is the full path (the cdr of the selected pair)
-        (project-switch-project selection)))))
-
-(shl/leader
-  "g r" '(shl/clone-and-switch :which-key "clone ref repo"))
-
-
-(use-package diff-hl
-  :ensure t
-  :hook
-  ((prog-mode . diff-hl-mode)
-   (text-mode . diff-hl-mode)
-   (dired-mode . diff-hl-dired-mode)
-   (magit-pre-refresh . diff-hl-magit-pre-refresh)
-   (magit-post-refresh . diff-hl-magit-post-refresh))
-  :custom
-  (diff-hl-side 'left)
-  (diff-hl-fringe-bmp-function 'shl--diff-hl-fringe-bmp-from-type)
-  (diff-hl-fringe-face-function 'shl--diff-hl-fringe-face-from-type)
-  (diff-hl-margin-symbols-alist
-   '((insert . "┃")
-     (delete . "┃")
-     (change . "┃")
-     (unknown . "?")
-     (ignored . "i")))
-  :init
-  (defun shl--diff-hl-fringe-face-from-type (type _pos)
-    (intern (format "shl--diff-hl-%s" type)))
-
-  (defun shl--diff-hl-fringe-bmp-from-type(type _pos)
-    (intern (format "shl--diff-hl-%s" type)))
-
-  (defun shl--diff-hl-set-render-mode ()
-    (diff-hl-margin-mode (if window-system -1 1)))
-  :config
-  (diff-hl-margin-mode 1)
-  (define-fringe-bitmap 'diff-hl-insert
-    [#b00000011] nil nil '(center repeated))
-  (define-fringe-bitmap 'diff-hl-change
-    [#b00000011] nil nil '(center repeated))
-  (define-fringe-bitmap 'diff-hl-delete
-    [#b00000011] nil nil '(center repeated)))
-  
+   
 
 ;;; Languages
 ;;; YAML
