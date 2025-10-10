@@ -2,16 +2,6 @@
 ;;; Code: 
 
 
-;;; Theme
-(use-package nano-theme
-  :ensure nil
-  :defer t
-  :hook (emacs-startup . nano-dark)
-  :ensure (nano-theme
-           :type git
-	   :host github
-           :repo "rougier/nano-theme"))
-
 ;;;;; Fontaine (font configurations)
 ;; Read the manual: <https://protesilaos.com/emacs/fontaine>
 (use-package fontaine
@@ -79,7 +69,7 @@
 
 (use-package doom-themes
   :ensure t
-  :defer
+  :demand t
   :custom
   (doom-gruvbox-dark-variant "hard")
   :config
@@ -137,7 +127,10 @@
     :config
     (setq doom-Iosvkem-brighter-comments nil
           doom-Iosvkem-comment-bg nil
-          doom-Iosvkem-brighter-modeline nil)))
+          doom-Iosvkem-brighter-modeline nil))
+  (load-theme 'doom-Iosvkem))
+
+
 
 
 (use-package doom-modeline
