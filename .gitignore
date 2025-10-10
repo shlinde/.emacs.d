@@ -1,4 +1,5 @@
 .cache/
+history
 dirvish-cache/
 bookmarks.eld
 ede-projects.el
