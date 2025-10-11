@@ -1,6 +1,8 @@
 ;;; init-workspaces.el --- Workspace & Project Configuration -*- lexical-binding: t; -*-
 ;;; Code:
 
+(require 'init-completion)
+
 (use-package project
   :ensure nil
   :commands (project-find-file
@@ -8,9 +10,8 @@
              project-switch-project
              project-switch-project-open-file)
   :bind (:map project-prefix-map
-         ("P" .  project-switch-project)
-         ("t" .  shl-goto-projects)
-         ("R" .  project-remember-projects-under))
+	      ("g" . consult-ripgrep)
+	      ("R" . project-remember-projects-under))
   :custom
   (project-list-file (concat shl--cache-dir "projects"))
   (project-switch-commands '((project-find-file "Find file")
@@ -23,34 +24,15 @@
   ;; Use Ripgrep if installed
   (when (shell-command-to-string "command rg --version")
     (setq xref-search-program 'ripgrep))
+
   (setq shl-project-dir "~/data/source/")
+
   ;; remove deleted projects from list
-  (project-forget-zombie-projects))
+  (project-forget-zombie-projects)
 
-(defun shl--project-name ()
-  "Return name of project without path."
-  (file-name-nondirectory (directory-file-name (if (vc-root-dir) (vc-root-dir) "-"))))
-
-;; magit function for project
-(defun project-magit-dir ()
-  "Run magit in the current project's root."
-  (interactive)
-  (magit-status))
-;; Add to keymap
-(define-key (current-global-map) (kbd "C-x p G") #'project-magit-dir)
-
-;;;; Open project & file
-(with-eval-after-load 'project
-  (defun project-switch-project-open-file (dir)
-    "Switch to another project by running an Emacs command.
-Open file using project-find-file
-
-When called in a program, it will use the project corresponding
-to directory DIR."
-    (interactive (list (project-prompt-project-dir)))
-    (let ((default-directory dir)
-          (project-current-inhibit-prompt t))
-      (call-interactively 'project-find-file))))
+  (defun shl--project-name ()
+    "Return name of project without path."
+    (file-name-nondirectory (directory-file-name (if (vc-root-dir) (vc-root-dir) "-")))))
 
 (use-package tab-bar
   :ensure nil
