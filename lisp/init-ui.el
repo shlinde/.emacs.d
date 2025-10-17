@@ -67,6 +67,7 @@
 ;; function sets this for all buffers. Otherwise, it only applies to the current
 ;; open buffer
 (setq-default line-spacing 0.05)
+(setq custom-safe-themes t)
 
 (use-package doric-themes
   :ensure t
@@ -90,6 +91,15 @@
    ("M-<f5>" . doric-themes-rotate)))
 
 
+(use-package time
+  :ensure nil
+  :demand t
+  :hook (elpaca-after-init . display-time-mode))
+
+(use-package battery
+  :ensure nil
+  :demand t
+  :hook (elpaca-after-init . display-battery-mode))
 
 (use-package doom-modeline
   :ensure t
@@ -101,6 +111,11 @@
 (use-package spacious-padding
   :ensure t
   :hook (elpaca-after-init . spacious-padding-mode))
+
+(use-package all-the-icons
+  :ensure t
+  :if (display-graphic-p)
+  )
 
 (provide 'init-ui)
 ;;; init-ui.el ends here

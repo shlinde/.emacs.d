@@ -182,6 +182,57 @@ local directory."
   (define-fringe-bitmap 'diff-hl-delete
     [#b00000011] nil nil '(center repeated)))
 
+;;; New Git Project
+(defun shl-git-new-project ()
+  "Initialize a new git repo and add it to project.el's known projects."
+  (interactive)
+  (let ((project-dir (expand-file-name
+                      (read-directory-name "New project root:"))))
+    (magit-init project-dir)
+    (setq default-directory project-dir)
+    ;; make sure project.el remembers new project
+    (let ((pr (project--find-in-directory default-directory)))
+      (project-remember-project pr))))
+
+;;; Clone a Git Repo from Clipboard
+;; http://xenodium.com/emacs-clone-git-repo-from-clipboard/
+(defun shl-git-clone-clipboard-url ()
+  "Clone git URL in clipboard asynchronously and open in Dired when finishe.
+Git repo is cloned to directory set by `shl-user-elisp-dir'."
+  (interactive)
+  (cl-assert (string-match-p "^\\(http\\|https\\|ssh\\)://" (current-kill 0)) nil "No URL in clipboard")
+  (let* ((url (current-kill 0))
+         (download-dir shl-user-elisp-dir)
+         (project-dir (concat (file-name-as-directory download-dir)
+                              (file-name-base url)))
+         (default-directory download-dir)
+         (command (format "git clone %s" url))
+         (buffer (generate-new-buffer (format "*%s*" command)))
+         (proc))
+    (when (file-exists-p project-dir)
+      (if (y-or-n-p (format "%s exists. delete?" (file-name-base url)))
+          (delete-directory project-dir t)
+        (user-error "Bailed")))
+    (switch-to-buffer buffer)
+    (setq proc (start-process-shell-command (nth 0 (split-string command)) buffer command))
+    (with-current-buffer buffer
+      (setq default-directory download-dir)
+      (shell-command-save-pos-or-erase)
+      (require 'shell)
+      (shell-mode)
+      (view-mode +1))
+    (set-process-sentinel proc (lambda (process state)
+                                 (let ((output (with-current-buffer (process-buffer process)
+                                                 (buffer-string))))
+                                   (kill-buffer (process-buffer process))
+                                   (if (= (process-exit-status process) 0)
+                                       (progn
+                                         (message "finished: %s" command)
+                                         (dired project-dir))
+                                     (user-error (format "%s\n%s" command output))))))
+    (set-process-filter proc #'comint-output-filter)))
+
+
 (provide 'init-vc)
 ;;; init-vc.el ends here
 

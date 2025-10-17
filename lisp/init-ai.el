@@ -52,9 +52,9 @@
 	(consult-ripgrep dir initial))))
   :config 
   (if (string-equal (system-name) "archlinux")
-      (setq gptel-model 'gemini-2.5-pro-exp-03-25
+      (setq gptel-model 'gemini-2.5-pro
 	    gptel-backend (gptel-make-gemini "Gemini"
-			    :key (getenv "GEMINI_API_KEY")
+			    :key (gptel-api-key-from-auth-source "generativelanguage.googleapis.com")
 			    :stream t))
     (setq gptel-backend (gptel-make-gh-copilot "Copilot")
 	  gptel-model 'gemini-2.5-pro))
