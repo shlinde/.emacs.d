@@ -1,6 +1,8 @@
 ;;; init-ui.el --- User Interface -*- lexical-binding: t; -*-
 ;;; Code: 
 
+(require 'shl-core)
+
 
 ;;;;; Fontaine (font configurations)
 ;; Read the manual: <https://protesilaos.com/emacs/fontaine>
@@ -37,17 +39,17 @@
         '((small
            :default-height 80)
           (regular-dark
-           :default-family "RobotoMono Nerd Font"
+           :default-family shl-font
            :default-height 110
-	   :default-weight semibold
-           :fixed-pitch-family "RobotoMono Nerd Font"
-           :variable-pitch-family "Aporetic Sans")
+	   :default-weight medium
+           :fixed-pitch-family shl-mono-font
+           :variable-pitch-family shl-variable-pitch-font)
           (regular-light
-           :default-family "RobotoMono Nerd Font"
+           :default-family shl-font
            :default-height 110
 	   :default-weight normal
-           :fixed-pitch-family "RobotoMono Nerd Font"
-           :variable-pitch-family "Aporetic Sans"))))
+           :fixed-pitch-family shl-mono-font
+           :variable-pitch-family shl-variable-pitch-font))))
 
 ;;;; Font Lock
 (use-package font-lock
@@ -66,70 +68,26 @@
 ;; open buffer
 (setq-default line-spacing 0.05)
 
-
-(use-package doom-themes
+(use-package doric-themes
   :ensure t
   :demand t
-  :custom
-  (doom-gruvbox-dark-variant "hard")
   :config
-  (add-hook 'enable-theme-functions #'shl/doom-theme-settings)
-  (defun shl/doom-theme-settings (theme &rest args)
-    "Additional face settings for doom themes"
-    (if (eq theme 'doom-rouge)
-        (progn
-          (setq window-divider-default-right-width 2
-                window-divider-default-bottom-width 2
-                window-divider-default-places t)
-          (message "Turned on window dividers")
-          (window-divider-mode 1))
-      (window-divider-mode -1)
-      (message "Turned off window dividers"))
-    (when (string-match-p "^doom-" (symbol-name theme))
-      ;; (when (eq theme 'doom-rouge)
-      ;;   (custom-set-faces `(hl-line ((,class :background "#1f2a3f")))))
-      ;; Window dividers
-      (let ((class '((class color) (min-colors 256))))
-        (dolist (face-spec
-                 '((aw-leading-char-face (:height 2.0 :foreground unspecified :inherit mode-line-emphasis)
-                    ace-window)
-                   (aw-background-face (:inherit default :weight normal) ace-window)
-                   (outline-1        (:height 1.25) outline)
-                   (outline-2        (:height 1.20) outline)
-                   (outline-3        (:height 1.16) outline)
-                   (outline-4        (:height 1.12) outline)
-                   ;; (tab-bar            (:background "black" :height 1.0 :foreground "white")
-                   ;;  tab-bar)
-                   ;; (tab-bar-tab
-                   ;;  (:bold t :height 1.10 :foreground nil :inherit mode-line-emphasis)
-                   ;;  tab-bar)
-                   ;; (tab-bar-tab-inactive
-                   ;;  (:inherit 'mode-line-inactive :height 1.10 :background "black")
-                   ;;  tab-bar)
-                   ))
-          (cl-destructuring-bind (face spec library) face-spec
-            (if (featurep library)
-                (custom-set-faces `(,face ((,class ,@spec))))
-              (with-eval-after-load library
-                (when (string-match-p "^doom-" (symbol-name theme))
-                  (custom-set-faces `(,face ((,class ,@spec))))))))))))
-  (doom-themes-org-config)
-  (use-package doom-rouge-theme
-    :config
-    (setq doom-rouge-padded-modeline nil
-          doom-rouge-brighter-comments t
-          doom-rouge-brighter-tabs t))
+  ;; These are the default values.
+  (setq doric-themes-to-toggle '(doric-light doric-dark))
+  (setq doric-themes-to-rotate doric-themes-collection)
 
-  (use-package doom-iosvkem-theme
-    :disabled
-    ;; :custom-face
-    ;; (default ((t (:background "#061229"))))
-    :config
-    (setq doom-Iosvkem-brighter-comments nil
-          doom-Iosvkem-comment-bg nil
-          doom-Iosvkem-brighter-modeline nil))
-  (load-theme 'doom-Iosvkem))
+  (doric-themes-select 'doric-light)
 
+
+  ;; ;; For optimal results, also define your preferred font family (or use my `fontaine' package):
+  ;; (set-face-attribute 'default nil :family "Aporetic Sans Mono" :height 160)
+  ;; (set-face-attribute 'variable-pitch nil :family "Aporetic Sans" :height 1.0)
+  ;; (set-face-attribute 'fixed-pitch nil :family "Aporetic Sans Mono" :height 1.0)
+
+  :bind
+  (("<f5>" . doric-themes-toggle)
+   ("C-<f5>" . doric-themes-select)
+   ("M-<f5>" . doric-themes-rotate)))
 
 
 

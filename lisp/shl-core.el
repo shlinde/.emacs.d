@@ -68,9 +68,19 @@ straight) and by `shl-etc-dir' and `shl-cache-dir'.")
   :group 'shl-emacs
   :type 'string)
 
+;; Set user project directory
+(defcustom shl-mono-font "Aporetic Sans Mono" "Set the main font for Emacs."
+  :group 'shl-emacs
+  :type 'string)
+
+;; Set user project directory
+(defcustom shl-variable-pitch-font "Aporetic Serif" "Set the main font for Emacs."
+  :group 'shl-emacs
+  :type 'string)
+
 ;; Set user elisp project dir
 (defcustom shl-user-elisp-dir nil
-  "Directory for personal elisp projects.
+  "Directory for personal elisp projects.e
 Any customized libraries not available via standard package repos like elpa or melpa should go here."
   :group 'shl-emacs
   :type 'string)

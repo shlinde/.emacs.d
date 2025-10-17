@@ -4,6 +4,7 @@
 ;;; Org-mode (personal information manager)
 (use-package org
   :ensure nil
+  :hook (org-mode . variable-pitch-mode)
   :init
   (setq org-directory (expand-file-name "~/data/org/"))
   (setq org-imenu-depth 7)

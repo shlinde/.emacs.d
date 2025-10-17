@@ -95,20 +95,19 @@
                   (copy-tree `((mode-line-inactive mode-line)
                                ,@face-remapping-alist))
                   header-line-format nil
-                  mode-line-format
-                  (list (format " %s "
-                                (propertize
-                                 (format (if (< depth 2) "*%s*" "*%s [%s]*")
-                                         (replace-regexp-in-string
-                                          ":? *\\'" ""
-                                          (minibuffer-prompt))
-                                         depth)
-                                 'face 'mode-line-buffer-id)))
+                  mode-line-format nil
+                  ;; (list (format " %s "
+                  ;;               (propertize
+                  ;;                (format (if (< depth 2) "*%s*" "*%s [%s]*")
+                  ;;                        (replace-regexp-in-string
+                  ;;                         ":? *\\'" ""
+                  ;;                         (minibuffer-prompt))
+                  ;;                        depth)
+                  ;;                'face 'mode-line-buffer-id)))
                   cursor-in-non-selected-windows 'box
                   vertico-count (- (/ (window-pixel-height win)
                                       (default-line-height)) 1))))
   :config
-  ;; put minibuffer at top -- this is the more natural place to be looking!
   (setq vertico-buffer-display-action
         '(display-buffer-in-side-window
           (window-height . 12)

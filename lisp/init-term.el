@@ -8,7 +8,7 @@
   (setq exec-path-from-shell-shell-name (executable-find "zsh")
         exec-path-from-shell-arguments '("-l")) ; login so config.fish runs
   :config
-  (exec-path-from-shell-copy-envs '("PATH" "MANPATH" "UV_INDEX_YGGDRASIL_USERNAME" "UV_INDEX_YGGDRASIL_PASSWORD"))
+  (exec-path-from-shell-copy-envs '("PATH" "MANPATH" "UV_INDEX_YGGDRASIL_USERNAME" "UV_INDEX_YGGDRASIL_PASSWORD" "GEMINI_API_KEY"))
   (exec-path-from-shell-initialize))
 
 ;;;;; EAT (Emulate a terminal)

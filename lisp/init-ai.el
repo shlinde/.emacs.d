@@ -1,12 +1,12 @@
 ;;; init-ai.el --- AI Configuration -*- lexical-binding: t; -*-
 ;;; Code:
 
+(require 'init-general)
+
 ;;; AI
 (use-package gptel
   :ensure (:url "https://github.com/karthink/gptel") ; For Emacs>=30
-  :bind (:map embark-region-map
-	      ("+" . gptel-add))
-  :after general
+  :defer 2
   :preface
   (defvar shl/gptel-chat-directory
     (expand-file-name "chats/" org-directory)
@@ -51,9 +51,16 @@
       (let ((default-directory dir))
 	(consult-ripgrep dir initial))))
   :config 
-  (setq gptel-backend (gptel-make-gh-copilot "Copilot")
-	gptel-model 'gemini-2.5-pro
-	gptel-default-mode 'org-mode)
+  (if (string-equal (system-name) "archlinux")
+      (setq gptel-model 'gemini-2.5-pro-exp-03-25
+	    gptel-backend (gptel-make-gemini "Gemini"
+			    :key (getenv "GEMINI_API_KEY")
+			    :stream t))
+    (setq gptel-backend (gptel-make-gh-copilot "Copilot")
+	  gptel-model 'gemini-2.5-pro))
+
+  (setq gptel-default-mode 'org-mode)
+
   (gptel-make-tool
    :name "read_buffer"                    ; javascript-style snake_case name
    :function (lambda (buffer)                  ; the function that will run
