@@ -28,6 +28,9 @@
 (require 'init-org)
 (require 'init-ai)
 
+
+;; (require 'init-android)  ; only load if on android
+
 (provide 'init)
 ;;; init.el ends here
 

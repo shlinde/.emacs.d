@@ -11,13 +11,17 @@
   :hook
   ;; Persist the latest font preset when closing/starting Emacs.
   ((elpaca-after-init . fontaine-mode)
-   (elpaca-after-init . (lambda ()
-			  (fontaine-set-preset 'regular-light))))
-
+   (elpaca-after-init . shl/set-font))
   :general
   (shl/leader
     "t f" '(shl/fontaine-toggle :which-key "fontaine toggle"))
   :init
+  (defun shl/set-font ()
+    "Check if the current time is past 19:00 and run a function accordingly."
+    (let ((current-hour (string-to-number (format-time-string "%H"))))
+      (if (or (> current-hour 18) (< current-hour 5))
+          (fontaine-set-preset 'regular-dark)
+	(fontaine-set-preset 'regular-light))))
   (defun shl/fontaine-toggle ()
     "Toggle between =regular-light' and =regular-dark' fontaine presets."
     (interactive)
@@ -41,7 +45,7 @@
           (regular-dark
            :default-family shl-font
            :default-height 110
-	   :default-weight medium
+	   :default-weight semibold
            :fixed-pitch-family shl-mono-font
            :variable-pitch-family shl-variable-pitch-font)
           (regular-light
@@ -72,23 +76,19 @@
 (use-package doric-themes
   :ensure t
   :demand t
+  :hook (elpaca-after-init . shl/set-theme)
+  :init
+  (defun shl/set-theme ()
+    "Check if the current time is past 19:00 and run a function accordingly."
+    (let ((current-hour (string-to-number (format-time-string "%H"))))
+      (if (or (> current-hour 18) (< current-hour 5))
+          (doric-themes-select 'doric-dark)
+	(doric-themes-select 'doric-light))))
   :config
   ;; These are the default values.
   (setq doric-themes-to-toggle '(doric-light doric-dark))
   (setq doric-themes-to-rotate doric-themes-collection)
-
-  (doric-themes-select 'doric-light)
-
-
-  ;; ;; For optimal results, also define your preferred font family (or use my `fontaine' package):
-  ;; (set-face-attribute 'default nil :family "Aporetic Sans Mono" :height 160)
-  ;; (set-face-attribute 'variable-pitch nil :family "Aporetic Sans" :height 1.0)
-  ;; (set-face-attribute 'fixed-pitch nil :family "Aporetic Sans Mono" :height 1.0)
-
-  :bind
-  (("<f5>" . doric-themes-toggle)
-   ("C-<f5>" . doric-themes-select)
-   ("M-<f5>" . doric-themes-rotate)))
+  (doric-themes-select 'doric-dark))
 
 
 (use-package time
