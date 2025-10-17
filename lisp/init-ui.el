@@ -2,6 +2,7 @@
 ;;; Code: 
 
 (require 'shl-core)
+(require 'init-general)
 
 
 ;;;;; Fontaine (font configurations)

@@ -38,35 +38,6 @@
   :custom
   (show-paren-delay 0))
 
-(use-package embrace
-  :ensure t
-  :bind (("C-M-s-#" . embrace-commander))
-  :config
-  (add-hook 'org-mode-hook 'embrace-org-mode-hook)
-  (defun embrace-markdown-mode-hook ()
-    (dolist (lst '((?* "*" . "*")
-                   (?\ "\\" . "\\")
-                   (?$ "$" . "$")
-                   (?/ "/" . "/")))
-      (embrace-add-pair (car lst) (cadr lst) (cddr lst))))
-  (add-hook 'markdown-mode-hook 'embrace-markdown-mode-hook))
-
-
-;;;;; Structural Editing: Edit & Traverse Delimiters
-;; TODO: Write a transient for puni bindings
-(use-package puni
-  :ensure t
-  :bind (:map puni-mode-map
-         ;; Add slurp and bark bindings
-         ("C-(" . #'puni-slurp-backward)
-         ("C-)" . #'puni-slurp-forward)
-         ("C-{" . #'puni-barf-backward)
-         ("C-}" . #'puni-barf-forward))
-  :ghook '(prog-mode
-          tex-mode
-          org-mode markdown-mode
-          eval-expression-minibuffer-setup))
-
 (use-package flymake
   :ensure nil
   :ghook '(prog-mode)

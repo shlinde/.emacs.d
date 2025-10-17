@@ -1,6 +1,8 @@
 ;;; init-org.el --- Org Mode Configuration -*- lexical-binding: t; -*-
 ;;; Code:
 
+(require 'init-general)
+
 ;;; Org-mode (personal information manager)
 (use-package org
   :ensure nil

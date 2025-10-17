@@ -1,19 +1,11 @@
 ;;; init.el --- SHLinde Emacs Configuration -*- lexical-binding: t; -*-
 ;;; Code:
 
-;;; Core
 (add-to-list 'load-path (concat user-emacs-directory "lisp/"))
+
+;;; Core
 (require 'init-optim)
 (require 'init-elpaca)
-
-;;; Org mode
-(use-package org
-  :ensure (:wait t)
-  :bind (("C-c n" . (lambda ()
-		      (interactive)
-		      (find-file "~/data/org/inbox.org")))))
-
-(require 'init-general)  ; TODO Remove this when the init file is refactored. Should just be required from the modules.
 (require 'init-ui)
 (require 'init-editor)
 (require 'init-vc)

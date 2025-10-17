@@ -1,6 +1,8 @@
 ;;; init-term.el --- Terminal Configuration -*- lexical-binding: t; -*-
 ;;; Code:
 
+(require 'init-general)
+
 (use-package exec-path-from-shell
   :ensure t
   :hook (emacs-startup . exec-path-from-shell-initialize)

@@ -1,6 +1,8 @@
 ;;; init-evil.el --- Vim Movements -*- lexical-binding: t; -*-
 ;;; Code:
 
+(require 'init-general)
+
 (defvar shl/evil-leader-key "SPC"
   "The leader prefix for Evil.")
 
