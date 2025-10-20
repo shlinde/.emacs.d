@@ -218,6 +218,43 @@ and opens the specified file."
 (with-eval-after-load 'org
   (define-key org-mode-map (kbd "C-c r") #'shl/org-open-file-from-property))
 
+(use-package logos
+  :ensure t
+  :config
+  ;; If you want to use outlines instead of page breaks (the ^L):
+  (setq logos-outlines-are-pages t)
+
+  ;; This is the default value for the outlines:
+  (setq logos-outline-regexp-alist
+	`((emacs-lisp-mode . "^;;;+ ")
+          (org-mode . "^\\*+ +")
+          (markdown-mode . "^\\#+ +")))
+
+  ;; These apply when `logos-focus-mode' is enabled.  Their value is
+  ;; buffer-local.
+  (setq-default logos-hide-cursor nil
+		logos-hide-mode-line t
+		logos-hide-header-line t
+		logos-hide-buffer-boundaries t
+		logos-hide-fringe t
+		logos-variable-pitch nil
+		logos-buffer-read-only nil
+		logos-scroll-lock nil
+		logos-olivetti nil)
+
+  ;; Also check this manual for `logos-focus-mode-hook'.  It lets you
+  ;; extend `logos-focus-mode'.
+
+  (let ((map global-map))
+    (define-key map [remap narrow-to-region] #'logos-narrow-dwim)
+    (define-key map [remap forward-page] #'logos-forward-page-dwim)
+    (define-key map [remap backward-page] #'logos-backward-page-dwim)
+    (define-key map (kbd "<f9>") #'logos-focus-mode)))
+
+  ;; Also consider adding keys to `logos-focus-mode-map'.  They will take
+  ;; effect when `logos-focus-mode' is enabled.
+
+
 
 (provide 'init-org)
 ;;; init-org.el ends here

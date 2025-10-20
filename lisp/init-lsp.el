@@ -7,8 +7,8 @@
   :ensure nil
   :commands (eglot eglot-ensure)
   :hook ((;; Existing tree-sitter modes
-          c-ts-mode
-          c++-ts-mode
+          ;; c-ts-mode
+          ;; c++-ts-mode
           cmake-ts-mode
           csharp-ts-mode
           css-ts-mode
@@ -25,8 +25,8 @@
           typescript-ts-mode
           yaml-ts-mode
           ;; Traditional modes as fallback
-          c-mode
-          c++-mode
+          ;; c-mode
+          ;; c++-mode
           python-mode
           ruby-mode
           rust-mode

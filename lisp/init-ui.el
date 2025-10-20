@@ -110,13 +110,13 @@
 (use-package diminish :ensure t)
 
 (use-package spacious-padding
+  :disabled t
   :ensure t
   :hook (elpaca-after-init . spacious-padding-mode))
 
 (use-package all-the-icons
   :ensure t
-  :if (display-graphic-p)
-  )
+  :if (display-graphic-p))
 
 (provide 'init-ui)
 ;;; init-ui.el ends here

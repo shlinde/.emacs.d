@@ -194,5 +194,49 @@
   (unless (treesit-language-available-p 'toml)
     (treesit-install-language-grammar 'toml)))
 
+
+;;; C programming setup
+
+(use-package c-ts-mode
+  :ensure nil ; This is built-in with Emacs 29+
+  :mode (("\\.c\\'" . c-ts-mode)
+	 ("\\.h\\'" . c-ts-mode))
+  :init
+  (setq c-ts-mode-indent-style 'gnu
+	compile-command "./build.sh"))
+
+;; GDB Integration
+(use-package gud
+  :ensure nil
+  :config
+  (setq gdb-many-windows t))
+
+;; Ctags Integration
+;; Maybe use etags-regen-mode
+(use-package etags
+  :ensure nil
+  :hook (elpaca-after-init . etags-regen-mode)
+  :general
+  (shl/local-leader
+    :keymaps '(c-ts-mode c-mode)
+    "T" '(shl/project-generate-tags :which-key "Generate tags for project")
+    "t" '(shl/project-visit-tags :which-key "Visit tags table for project"))
+  :preface
+  (defun shl/project-generate-tags ()
+    (interactive)
+    (let ((root (project-root (project-current))))
+      (if root
+	  (let ((default-directory root))
+	    (compile "ctags -e -R ."))
+	(message "Not in recognized project"))))
+  (defun shl/project-visit-tags ()
+    (interactive)
+    (let* ((root (project-root (project-current)))
+	   (tags-file (and root (expand-file-name "TAGS" root))))
+      (when (and tags-file (file-readable-p tags-file))
+	(visit-tags-table tags-file t))))
+  :config
+  (setq tags-file-name "TAGS"))
+
 (provide 'init-prog)
 ;;; init-prog.el ends here
