@@ -7,54 +7,16 @@
 
 ;;;;; Fontaine (font configurations)
 ;; Read the manual: <https://protesilaos.com/emacs/fontaine>
-(use-package fontaine
-  :ensure t
-  :hook
-  ;; Persist the latest font preset when closing/starting Emacs.
-  ((elpaca-after-init . fontaine-mode)
-   (elpaca-after-init . shl/set-font))
-  :general
-  (shl/leader
-    "t f" '(shl/fontaine-toggle :which-key "fontaine toggle"))
-  :init
-  (defun shl/set-font ()
-    "Check if the current time is past 19:00 and run a function accordingly."
-    (let ((current-hour (string-to-number (format-time-string "%H"))))
-      (if (or (> current-hour 18) (< current-hour 5))
-          (fontaine-set-preset 'regular-dark)
-	(fontaine-set-preset 'regular-light))))
-  (defun shl/fontaine-toggle ()
-    "Toggle between =regular-light' and =regular-dark' fontaine presets."
-    (interactive)
-    (let* ((current (and (boundp 'fontaine-current-preset) fontaine-current-preset))
-           (next (if (eq current 'regular-light) 'regular-dark 'regular-light)))
-      (fontaine-set-preset next)
-      (message "Fontaine preset set to: %s" next)))
+(defun shl/set-font (default variable-pitch weight)
+  (progn
+    (set-face-attribute 'default nil
+			:width 'normal :weight weight
+			:height 140 :font default)
+    (set-face-attribute 'variable-pitch nil
+			:width 'normal :weight weight
+			:height 140 :font variable-pitch)))
 
-  :config
-  ;; And this is for Emacs28.
-  (setq-default text-scale-remap-header-line t)
-
-  ;; This is the default value.  Just including it here for
-  ;; completeness.
-  (setq fontaine-latest-state-file (locate-user-emacs-file "fontaine-latest-state.eld"))
-
-  ;; The font family is my design: <https://github.com/protesilaos/aporetic>.
-  (setq fontaine-presets
-        '((small
-           :default-height 80)
-          (regular-dark
-           :default-family shl-font
-           :default-height 110
-	   :default-weight semibold
-           :fixed-pitch-family shl-mono-font
-           :variable-pitch-family shl-variable-pitch-font)
-          (regular-light
-           :default-family shl-font
-           :default-height 110
-	   :default-weight normal
-           :fixed-pitch-family shl-mono-font
-           :variable-pitch-family shl-variable-pitch-font))))
+(shl/set-font "Aporetic Sans Mono" "Aporetic Serif" 'semi-light)
 
 ;;;; Font Lock
 (use-package font-lock
