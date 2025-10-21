@@ -62,12 +62,33 @@
 (use-package battery
   :ensure nil
   :demand t
-  :hook (elpaca-after-init . display-battery-mode))
+  :hook (elpaca-after-init . (lambda ()
+			       (when (not (string-match-p "N/A" (battery-format "%B" (funcall battery-status-function))))
+				 display-battery-mode))))
 
-(use-package doom-modeline
-  :ensure t
-  :hook (elpaca-after-init . doom-modeline-mode))
-
+;; A minimal modeline configuration inspired by Fabrice Bellard's philosophy.
+(setq-default mode-line-format
+  '("%e" ; Emacs an der Macht (auf Deutsch für "Emacs in power")
+    mode-line-front-space
+    ;; -- Buffer Status and Name --
+    ;; Shows '--' if unmodified, '**' if modified
+    (:propertize ("%*") face 'mode-line-buffer-id)
+    ;; Shows the buffer name
+    (:propertize (" %b ") face 'mode-line-buffer-id)
+    " "
+    ;; -- Major Mode --
+    ;; Displays the major mode
+    (:eval (capitalize (string-replace "-mode" "" (symbol-name major-mode))))
+    "  "
+    ;; -- Position in Buffer --
+    ;; Shows the line and column number
+    "L%l:%c"
+    ;; -- Right-aligned ISO 8601 Datetime --
+    mode-line-format-right-align
+    mode-line-battery-status
+    ;; Formats the current time as YYYY-MM-DD HH:MM:SS
+    (:eval (format-time-string "%Y-%m-%d %H:%M:%S"))
+    " "))
 
 (use-package diminish :ensure t)
 
