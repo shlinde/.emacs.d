@@ -4,9 +4,7 @@
 (require 'shl-core)
 (require 'init-general)
 
-
-;;;;; Fontaine (font configurations)
-;; Read the manual: <https://protesilaos.com/emacs/fontaine>
+;;;;; Font configuration
 (defun shl/set-font (default variable-pitch weight)
   (progn
     (set-face-attribute 'default nil
@@ -46,7 +44,7 @@
     (let ((current-hour (string-to-number (format-time-string "%H"))))
       (if (or (> current-hour 18) (< current-hour 5))
           (doric-themes-select 'doric-dark)
-	(doric-themes-select 'doric-light))))
+	(doric-themes-select 'doric-marble))))
   :config
   ;; These are the default values.
   (setq doric-themes-to-toggle '(doric-light doric-dark))
@@ -89,13 +87,6 @@
     ;; Formats the current time as YYYY-MM-DD HH:MM:SS
     (:eval (format-time-string "%Y-%m-%d %H:%M:%S"))
     " "))
-
-(use-package diminish :ensure t)
-
-(use-package spacious-padding
-  :disabled t
-  :ensure t
-  :hook (elpaca-after-init . spacious-padding-mode))
 
 (use-package all-the-icons
   :ensure t
