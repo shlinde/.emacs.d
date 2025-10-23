@@ -154,34 +154,8 @@ local directory."
    (text-mode . diff-hl-mode)
    (dired-mode . diff-hl-dired-mode)
    (magit-pre-refresh . diff-hl-magit-pre-refresh)
-   (magit-post-refresh . diff-hl-magit-post-refresh))
-  :custom
-  (diff-hl-side 'left)
-  (diff-hl-fringe-bmp-function 'shl--diff-hl-fringe-bmp-from-type)
-  (diff-hl-fringe-face-function 'shl--diff-hl-fringe-face-from-type)
-  (diff-hl-margin-symbols-alist
-   '((insert . "┃")
-     (delete . "┃")
-     (change . "┃")
-     (unknown . "?")
-     (ignored . "i")))
-  :init
-  (defun shl--diff-hl-fringe-face-from-type (type _pos)
-    (intern (format "shl--diff-hl-%s" type)))
+   (magit-post-refresh . diff-hl-magit-post-refresh)))
 
-  (defun shl--diff-hl-fringe-bmp-from-type(type _pos)
-    (intern (format "shl--diff-hl-%s" type)))
-
-  (defun shl--diff-hl-set-render-mode ()
-    (diff-hl-margin-mode (if window-system -1 1)))
-  :config
-  (diff-hl-margin-mode 1)
-  (define-fringe-bitmap 'diff-hl-insert
-    [#b00000011] nil nil '(center repeated))
-  (define-fringe-bitmap 'diff-hl-change
-    [#b00000011] nil nil '(center repeated))
-  (define-fringe-bitmap 'diff-hl-delete
-    [#b00000011] nil nil '(center repeated)))
 
 ;;; New Git Project
 (defun shl-git-new-project ()

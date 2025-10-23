@@ -9,10 +9,13 @@
   (progn
     (set-face-attribute 'default nil
 			:width 'normal :weight weight
-			:height 140 :font default)
+			:height 110 :font default)
+    (set-face-attribute 'fixed-pitch nil
+			:width 'normal :weight weight
+			:height 110 :font default)
     (set-face-attribute 'variable-pitch nil
 			:width 'normal :weight weight
-			:height 140 :font variable-pitch)))
+			:height 110 :font variable-pitch)))
 
 (shl/set-font "Aporetic Sans Mono" "Aporetic Serif" 'semi-light)
 
@@ -35,6 +38,7 @@
 (setq custom-safe-themes t)
 
 (use-package doric-themes
+  :disabled t
   :ensure t
   :demand t
   :hook (elpaca-after-init . shl/set-theme)
@@ -44,12 +48,18 @@
     (let ((current-hour (string-to-number (format-time-string "%H"))))
       (if (or (> current-hour 18) (< current-hour 5))
           (doric-themes-select 'doric-dark)
-	(doric-themes-select 'doric-marble))))
+	(doric-themes-select 'doric-light))))
   :config
   ;; These are the default values.
   (setq doric-themes-to-toggle '(doric-light doric-dark))
   (setq doric-themes-to-rotate doric-themes-collection)
   (doric-themes-select 'doric-dark))
+
+(use-package color-theme-sanityinc-tomorrow
+  :ensure t
+  :demand t
+  :hook (emacs-startup . color-theme-sanityinc-tomorrow-bright))
+
 
 
 (use-package time

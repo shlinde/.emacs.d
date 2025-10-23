@@ -150,5 +150,68 @@ the unwritable tidbits."
   :hook (prog-mode . hl-todo-mode))
 
 
+(use-package avy
+  :ensure t
+  :commands (avy-goto-word-1 avy-goto-char-2 avy-goto-char-timer)
+  :config
+  (setq avy-timeout-seconds 0.27)
+  ;; (setq avy-keys '( ?f ?d ?s ?a ?g ?q ?e ?r
+  ;;                   ?c ?v ?p ?. ?, 
+  ;;                   ?u ?/ ?b ?n ?i ?o ?' ?l ?j))
+  ;; (setq avy-single-candidate-jump nil)
+  (setq avy-dispatch-alist '((?m . avy-action-mark)
+                             (?$ . avy-action-ispell)
+                             (?z . avy-action-zap-to-char)
+                             (?  . avy-action-embark)
+                             (?= . avy-action-define)
+                             (23 . avy-action-zap-to-char)
+                             ;; (67108896 . avy-action-mark-to-char)
+                             (?h . avy-action-helpful)
+                             (?x . avy-action-exchange)
+                             
+                             (11 . avy-action-kill-line)
+                             (25 . avy-action-yank-line)
+                             
+                             (?w . avy-action-easy-kill)
+                             (?k . avy-action-kill-stay)
+                             (?y . avy-action-yank)
+                             (?t . avy-action-teleport)
+                             
+                             (?W . avy-action-copy-whole-line)
+                             (?K . avy-action-kill-whole-line)
+                             (?Y . avy-action-yank-whole-line)
+                             (?T . avy-action-teleport-whole-line)
+                             ;; (67108923 . avy-action-add-cursor)
+                             (?\; . avy-action-add-cursor)))
+
+  :init
+  (defun avy-action-embark (pt)
+    (unwind-protect
+        (save-excursion
+          (goto-char pt)
+          (embark-act))
+      (select-window
+       (cdr (ring-ref avy-ring 0))))
+    t)
+  
+  
+  :bind (("C-M-'"   . avy-resume)
+         ("M-j"     . avy-goto-char-timer)
+         ("M-s y"   . avy-copy-line)
+         ("M-s M-y" . avy-copy-region)
+         ("M-s M-k" . avy-kill-whole-line)
+         ("M-s j"   . avy-goto-char-2)
+         ("M-s M-p" . avy-goto-line-above)
+         ("M-s M-n" . avy-goto-line-below)
+         ("M-s C-w" . avy-kill-region)
+         ("M-s M-w" . avy-kill-ring-save-region)
+         ("M-s t"   . avy-move-line)
+         ("M-s M-t" . avy-move-region)
+         ("M-g l"   . avy-goto-end-of-line)
+
+	 :map embark-general-map
+	 ("d" . shl/python-doc)))
+
+
 (provide 'init-editor)
 ;;; init-editor.el ends here

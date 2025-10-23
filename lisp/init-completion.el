@@ -2,6 +2,7 @@
 ;;; Code:
 
 (require 'shl-core)
+(require 'shl-python)
 (require 'init-general)
 
 ;;;;; Vertico
@@ -166,7 +167,7 @@
 ;;;;; Embark
 ;; Actions on narrowed candidates
 (use-package embark
-  :ensure t
+  :ensure (embark :host github :repo "oantolin/embark")
   :commands (embark-act embark-keymap-help)
   :custom
   ;; Use keymap -- completing-read on C-h
@@ -187,6 +188,7 @@
          ;; When using the Embark package, you can bind `marginalia-cycle' as an Embark action
          :map embark-general-map
          ("A"  . marginalia-cycle))
+
   :init
   ;; Optionally replace the key help with a completing-read interface
   (setq prefix-help-command #'embark-prefix-help-command)
@@ -368,17 +370,6 @@
   (corfu-history-mode 1) ;; Use history for completion
   (corfu-popupinfo-delay 1) ;; delay for info popup
   :config
-  ;; Enable Corfu completion for commands like M-: (eval-expression) or M-!
-  ;; (shell-command)
-  (defun corfu-enable-in-minibuffer ()
-    "Enable Corfu in the minibuffer if `completion-at-point' is bound."
-    (when (where-is-internal #'completion-at-point (list (current-local-map)))
-      ;; (setq-local corfu-auto nil) Enable/disable auto completion
-      (corfu-mode 1)))
-  (add-hook 'minibuffer-setup-hook #'corfu-enable-in-minibuffer)
-  (add-hook 'eshell-mode-hook (lambda () (setq-local corfu-quit-no-match t
-                                                corfu-quit-at-boundary t
-                                                corfu-auto nil)))
   ;; Avoid press RET twice in shell
   ;; https://github.com/minad/corfu#completing-in-the-eshell-or-shell
   (defun corfu-send-shell (&rest _)
@@ -398,8 +389,7 @@
               (corfu-mode)))
 
   ;; Display popup info
-  (require 'corfu-popupinfo)
-  (corfu-popupinfo-mode 1))
+  (require 'corfu-info))
 
 
 ;; Use dabbrev with Corfu!

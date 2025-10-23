@@ -20,6 +20,7 @@
 (require 'init-org)
 (require 'init-ai)
 
+(require 'shl-python)
 
 ;; (require 'init-android)  ; only load if on android
 
