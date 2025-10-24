@@ -73,6 +73,18 @@
 		       :type string            ; :type value must be a symbol
 		       :description "the name of the buffer whose contents are to be retrieved"
 		       :category "emacs")))
+
+
+  (setq architect-prompt
+	'(:name "Systems Architect"
+		:prompt (insert-file-contents "~/data/org/architect.org")))
+  (gptel-make-preset 'architect
+    :description "A preset for systems architecure"
+    :backend "Copilot"
+    :model 'gemini-2.5-pro
+    :system (org-file-contents "~/data/org/architect.org")
+    :tools '("fetch_content" "search" "sequentialthinking" "query"))
+
   ;; --- Gptel autosave (robust) -----------------------------------
 
 
