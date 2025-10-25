@@ -5,19 +5,19 @@
 (require 'init-general)
 
 ;;;;; Font configuration
-(defun shl/set-font (default variable-pitch weight)
+(defun shl/set-font (default variable-pitch weight size)
   (progn
     (set-face-attribute 'default nil
 			:width 'normal :weight weight
-			:height 110 :font default)
+			:height size :font default)
     (set-face-attribute 'fixed-pitch nil
 			:width 'normal :weight weight
-			:height 110 :font default)
+			:height size :font default)
     (set-face-attribute 'variable-pitch nil
 			:width 'normal :weight weight
-			:height 110 :font variable-pitch)))
+			:height size :font variable-pitch)))
 
-(shl/set-font "Aporetic Sans Mono" "Aporetic Serif" 'semi-light)
+(shl/set-font "Aporetic Sans Mono" "Aporetic Serif" 'medium 120)
 
 ;;;; Font Lock
 (use-package font-lock
@@ -55,12 +55,10 @@
   (setq doric-themes-to-rotate doric-themes-collection)
   (doric-themes-select 'doric-dark))
 
-(use-package color-theme-sanityinc-tomorrow
+(use-package zenburn-theme
   :ensure t
   :demand t
-  :hook (emacs-startup . color-theme-sanityinc-tomorrow-bright))
-
-
+  :hook (elpaca-after-init . (lambda () (load-theme 'zenburn :no-confirm))))
 
 (use-package time
   :ensure nil

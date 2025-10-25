@@ -336,68 +336,98 @@
 
 ;;;; In-Buffer Completion
 ;;;;; Corfu
+
 (use-package corfu
-  :ensure t
-  :hook
-  (window-setup . global-corfu-mode)
-  :general-config
-  (:keymaps 'corfu-map
-   "C-n" 'corfu-next
-   "C-p" 'corfu-previous
-   "C-g" 'corfu-quit
-   "M-l" 'corfu-show-location
-   "M-SPC" 'corfu-insert-separator
-   "<escape>" 'corfu-quit
-   "<return>" nil
-   "C-y" 'corfu-insert
-   "TAB" 'corfu-insert
-   [tab] 'corfu-insert)
-  :custom
-  ;; auto-complete
-  (corfu-auto t)
-  (corfu-min-width 25)
-  (corfu-max-width 100)
-  (corfu-count 10)
-  (corfu-scroll-margin 5)
-  (corfu-cycle t)
-  ;; TAB cycle if there are only few candidates
-  (completion-cycle-threshold 3)
-  (corfu-separator ?\s) ;; Use space as separator
-  (corfu-quit-no-match 'separator)
-  (corfu-quit-at-boundary 'separator)
-  (corfu-preview-current t)  ;; Preview current candidate?
-  (corfu-preselect-first nil)    ;; Preselect first candidate?
-  (corfu-history-mode 1) ;; Use history for completion
-  (corfu-popupinfo-delay 1) ;; delay for info popup
+  :ensure (:host github :repo "minad/corfu")
+  :hook ((prog-mode . corfu-mode)
+         ((shell-mode eshell-mode) . my/corfu-shell-settings)
+         (minibuffer-setup . my/corfu-enable-always-in-minibuffer))
+  :bind (:map corfu-map
+         ("C-n" . corfu-next)
+         ([tab] . corfu-next)
+         ("C-p" . corfu-previous)
+         ([backtab] . corfu-previous)
+         ("RET" . nil)
+         ("C-y" . corfu-insert)
+         ("M-." . corfu-show-location)
+         ("M-h" . nil)
+         ("M-." . corfu-info-location)
+         ("C-h" . corfu-info-documentation))
   :config
-  ;; Avoid press RET twice in shell
-  ;; https://github.com/minad/corfu#completing-in-the-eshell-or-shell
-  (defun corfu-send-shell (&rest _)
-    "Send completion candidate when inside comint/eshell."
+  (setq corfu-auto-prefix 4
+        corfu-auto-delay 0.07
+        corfu-count 8
+        corfu-auto  t
+        corfu-cycle t
+        corfu-quit-no-match 'separator
+        corfu-preselect 'prompt
+        corfu-scroll-margin 5)
+  
+  ;; Extensions
+  (use-package corfu-info
+    :bind (:map corfu-map ("M-g" . nil)))
+  (use-package corfu-history :defer 3 :config (corfu-history-mode 1))
+  (use-package corfu-popupinfo
+    :bind ( :map corfu-map
+            ([remap corfu-info-documentation] . corfu-popupinfo-toggle))
+    :config
+    (setq corfu-popupinfo-hide nil
+          corfu-popupinfo-delay '(2 . 0.2))
+    (corfu-popupinfo-mode 1))
+  (use-package corfu-quick
+    :bind (:map corfu-map ("'" . corfu-quick-complete))
+    :config (setq corfu-quick1 "asdfghjkl;"))
+
+  ;; Corfu in the minibuffer
+  (defvar my-corfu-minibuffer-exclude-modes (list read-passwd-map)
+    "Minibuffer-local keymaps for which Corfu should be disabled.")
+  (defvar my-corfu-minibuffer-exclude-commands
+    '(org-ql-find)
+    "Minibuffer commands for which Corfu should be disabled.")
+  (defun my/corfu-enable-always-in-minibuffer ()
+    "Enable Corfu in the minibuffer if Vertico is not active."
+    (unless (or (bound-and-true-p vertico--input)
+                (memq this-command my-corfu-minibuffer-exclude-commands)
+                (memq (current-local-map)
+                      my-corfu-minibuffer-exclude-modes))
+      ;; (setq-local corfu-auto nil) ;; Enable/disable auto completion
+      (setq-local corfu-echo-delay nil ;; Disable automatic echo and popup
+                  corfu-popupinfo-delay nil)
+      (corfu-mode 1)))
+
+  (use-package consult
+    :bind (:map corfu-map
+           ("M-m" . corfu-move-to-minibuffer)
+           ("C-<tab>" . corfu-move-to-minibuffer))
+    :config
+    (defun corfu-move-to-minibuffer ()
+      (interactive)
+      (pcase completion-in-region--data
+        (`(,beg ,end ,table ,pred ,extras)
+         (let ((completion-extra-properties extras)
+               completion-cycle-threshold completion-cycling)
+           (consult-completion-in-region beg end table pred)))))
+    (add-to-list 'corfu-continue-commands #'corfu-move-to-minibuffer))
+  
+  ;; Corfu in the shell
+  (defun my/corfu-shell-settings ()
+    (setq-local corfu-quit-no-match t
+                corfu-auto nil)
+    (setq-local corfu-map (copy-keymap corfu-map)
+                completion-cycle-threshold nil)
+    (define-key corfu-map "\r" #'corfu-insert-and-send)
+    (corfu-mode))
+  (defun corfu-insert-and-send ()
+    (interactive)
+    ;; 1. First insert the completed candidate
+    (corfu-insert)
+    ;; 2. Send the entire prompt input to the shell
     (cond
      ((and (derived-mode-p 'eshell-mode) (fboundp 'eshell-send-input))
       (eshell-send-input))
-     ((and (derived-mode-p 'comint-mode)  (fboundp 'comint-send-input))
-      (comint-send-input))))
+     ((derived-mode-p 'comint-mode)
+      (comint-send-input)))))
 
-  (advice-add #'corfu-insert :after #'corfu-send-shell)
-
-  ;; Completion in eshell
-  (add-hook 'eshell-mode-hook
-            (lambda ()
-              (setq-local corfu-auto nil)
-              (corfu-mode)))
-
-  ;; Display popup info
-  (require 'corfu-info))
-
-
-;; Use dabbrev with Corfu!
-(use-package dabbrev
-  :ensure nil
-  ;; Swap M-/ and C-M-/
-  :bind (("M-/" . dabbrev-completion)
-         ("C-M-/" . dabbrev-expand)))
 
 ;;;;;; Corfu Extensions (Cape)
 ;; Add extensions
@@ -436,28 +466,12 @@
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
 
-;;;;; Kind Icon (For Corfu)
-(use-package kind-icon
-  :ensure t		
-  :defer 1
-  :custom
-  (kind-icon-use-icons t)
-  (kind-icon-default-face 'corfu-default) ; Have background color be the same as `corfu' face background
-  (kind-icon-blend-background nil)
-  ;; NOTE kind-icon' depends on `svg-lib' which creates a cache directory that
-  ;; defaults to the `user-emacs-directory'. Here, I change that directory to
-  ;; the cache location.
-  (svg-lib-icons-dir (concat shl-cache-dir  "svg-lib/cache/")) ; Change cache dir
+;;;;; Nerd Icons for Corfu
+(use-package nerd-icons-corfu
+  :ensure t
+  :after corfu
   :config
-  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter) ; Enable `kind-icon'
-
-  ;; If this isn't done, then the backgound color will remain the same, meaning
-  ;; it will not match the background color corresponding to the current theme.
-  ;; This hook is already set in the `shl-setup-themes.el' file, but you could
-  ;; set it here if you prefer:
-  ;; e.g. (add-hook 'after-load-theme-hook #'kind-icon-reset-cache)
-  ;; kind-icon needs to have its cache flushed after theme chan)
-  )
+  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
 
 ;;;;; Yasnippet
 (defcustom shl-all-snippets-dir (concat shl-etc-dir "all-snippets/") "DIR for all snippet files."

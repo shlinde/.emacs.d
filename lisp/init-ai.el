@@ -39,9 +39,8 @@
     (interactive)
     (let ((dir (shl/gptel--chat-dir)))
       (make-directory dir t)
-      (dirvish dir)
-      ;; Slight delay so window/layout exists before toggling preview.
-      (run-at-time 0.05 nil #'shl/dirvish-ensure-preview)))
+      (dired dir)))
+
 
   (defun shl/gptel-chat-ripgrep (&optional initial)
     "Run consult-ripgrep limited to the Gptel chats directory."
@@ -198,11 +197,9 @@
   :custom (mcp-hub-servers
            `(("filesystem" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-filesystem" "/home/slinde/data")))
              ("fetch" . (:command "uvx" :args ("mcp-server-fetch")))
-	     ;; ("serena" . (:command "uvx" :args ("--from" "git+https://github.com/oraios/serena" "serena" "start-mcp-server")))
 	     ("deepwiki" :url "https://mcp.deepwiki.com/sse")
-	     ("ddg-search" . (:command "uvx" :args ("duckduckgo-mcp-server")))
-             ;; ("context7" . (:command "npx" :args ("-y" "@upstash/context7-mcp@latest")))  ;; deep-wiki should be better
-             ("sequential-thinking" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-sequential-thinking")))))
+	     ("ddg-search" . (:command "uvx" :args ("duckduckgo-mcp-server")))))
+             ;; ("sequential-thinking" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-sequential-thinking")))))
   :config
   (require 'mcp-hub)
   (require 'gptel-integrations))

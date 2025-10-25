@@ -58,6 +58,14 @@
   :ensure t
   :hook (elpaca-after-init . flymake-collection-hook-setup))
 
+(use-package flymake-ruff
+  :ensure t
+  :hook (python-base-mode . flymake-ruff-load))
+
+(use-package ruff-format
+  :ensure t
+  :hook (python-base-mode . ruff-format-on-save-mode))
+
 ;;;;; Multi-Compile
 (use-package multi-compile
   :ensure t

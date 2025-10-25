@@ -41,7 +41,6 @@
     "l q" '(eglot-shutdown            :which-key "shutdown")
     "l a" '(eglot-code-actions        :which-key "code actions")
     "l r" '(eglot-rename              :which-key "rename")
-    "l h" '(shl/eglot-toggle-inlay-hints :which-key "inlay hints")
     "l d" '(eglot-find-declaration    :which-key "declaration")
     "l D" '(eglot-find-definition     :which-key "definition")
     "l i" '(eglot-find-implementation :which-key "implementation")
@@ -51,12 +50,6 @@
     "l o" '(eglot-stats               :which-key "stats")
     "l ." '(eglot-code-action-quickfix :which-key "quick fix"))
   :init
-  (defun shl/eglot-toggle-inlay-hints ()
-    (interactive)
-    (if (bound-and-true-p eglot-inlay-hints-mode)
-        (eglot-inlay-hints-mode 0)
-      (eglot-inlay-hints-mode 1)))
-
   (defun shl/eglot-restart ()
     "Restart the Eglot server for this buffer."
     (interactive)
@@ -65,6 +58,13 @@
   :config
   (fset #'jsonrpc--log-event #'ignore)
   (general-setq-default eglot-events-buffer-size 0)
+
+  (add-to-list 'eglot-server-programs
+               '(python-mode . ("ruff" "server")))
+  (add-to-list 'eglot-server-programs
+               '(python-ts-mode . ("ruff" "server")))
+  
+  (add-hook 'after-save-hook 'eglot-format)
 
   (general-setq eglot-autoshutdown t
 		eglot-confirm-server-initiated-edits nil
@@ -110,13 +110,6 @@
   ;; Auto-update overlays
   (flyover-update-frequency 0.3))
 
-
-;;;; Completion Integration with LSP
-(with-eval-after-load 'corfu
-  ;; Enable LSP completion features
-  (setq-default corfu-auto t
-                corfu-auto-delay 0.1
-                corfu-auto-prefix 2))
 
 (with-eval-after-load 'cape
   ;; Add Cape completion functions for LSP

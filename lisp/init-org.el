@@ -68,7 +68,7 @@
   (add-hook 'org-mode-hook #'org-indent-mode)
   (add-hook 'org-mode-hook #'visual-line-mode)
   (setq org-adapt-indentation nil) ; No, non, nein, όχι to literal indentation!
-  (setq org-indent-mode-turns-on-hiding-stars nil)
+  (setq org-indent-mode-turns-on-hiding-stars t)
   (setq org-indent-indentation-per-level 2))
 
 ;;;; refile, todo
