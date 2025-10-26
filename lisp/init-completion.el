@@ -172,9 +172,9 @@
   :custom
   ;; Use keymap -- completing-read on C-h
   (embark-prompter 'embark-keymap-prompter)
-  :bind (("C-." . embark-act)
+  :bind (("M-." . embark-act)
          ("C->" . embark-act-all)
-         ("M-." . embark-dwim)
+         ("M-S-." . embark-dwim)
          ("C-h B" . embark-bindings)
          :map minibuffer-local-completion-map
          ("C-;"   . embark-act-noexit)
@@ -187,7 +187,8 @@
          ("x" . consult-file-externally)
          ;; When using the Embark package, you can bind `marginalia-cycle' as an Embark action
          :map embark-general-map
-         ("A"  . marginalia-cycle))
+         ("A"  . marginalia-cycle)
+	 ("h" . embark-describe-symbol))
 
   :init
   ;; Optionally replace the key help with a completing-read interface
@@ -336,100 +337,9 @@
 
 ;;;; In-Buffer Completion
 ;;;;; Corfu
+(bind-key* "C-." #'completion-at-point)
 
-(use-package corfu
-  :ensure (:host github :repo "minad/corfu")
-  :hook ((prog-mode . corfu-mode)
-         ((shell-mode eshell-mode) . my/corfu-shell-settings)
-         (minibuffer-setup . my/corfu-enable-always-in-minibuffer))
-  :bind (:map corfu-map
-         ("C-n" . corfu-next)
-         ([tab] . corfu-next)
-         ("C-p" . corfu-previous)
-         ([backtab] . corfu-previous)
-         ("RET" . nil)
-         ("C-y" . corfu-insert)
-         ("M-." . corfu-show-location)
-         ("M-h" . nil)
-         ("M-." . corfu-info-location)
-         ("C-h" . corfu-info-documentation))
-  :config
-  (setq corfu-auto-prefix 4
-        corfu-auto-delay 0.07
-        corfu-count 8
-        corfu-auto  t
-        corfu-cycle t
-        corfu-quit-no-match 'separator
-        corfu-preselect 'prompt
-        corfu-scroll-margin 5)
-  
-  ;; Extensions
-  (use-package corfu-info
-    :bind (:map corfu-map ("M-g" . nil)))
-  (use-package corfu-history :defer 3 :config (corfu-history-mode 1))
-  (use-package corfu-popupinfo
-    :bind ( :map corfu-map
-            ([remap corfu-info-documentation] . corfu-popupinfo-toggle))
-    :config
-    (setq corfu-popupinfo-hide nil
-          corfu-popupinfo-delay '(2 . 0.2))
-    (corfu-popupinfo-mode 1))
-  (use-package corfu-quick
-    :bind (:map corfu-map ("'" . corfu-quick-complete))
-    :config (setq corfu-quick1 "asdfghjkl;"))
-
-  ;; Corfu in the minibuffer
-  (defvar my-corfu-minibuffer-exclude-modes (list read-passwd-map)
-    "Minibuffer-local keymaps for which Corfu should be disabled.")
-  (defvar my-corfu-minibuffer-exclude-commands
-    '(org-ql-find)
-    "Minibuffer commands for which Corfu should be disabled.")
-  (defun my/corfu-enable-always-in-minibuffer ()
-    "Enable Corfu in the minibuffer if Vertico is not active."
-    (unless (or (bound-and-true-p vertico--input)
-                (memq this-command my-corfu-minibuffer-exclude-commands)
-                (memq (current-local-map)
-                      my-corfu-minibuffer-exclude-modes))
-      ;; (setq-local corfu-auto nil) ;; Enable/disable auto completion
-      (setq-local corfu-echo-delay nil ;; Disable automatic echo and popup
-                  corfu-popupinfo-delay nil)
-      (corfu-mode 1)))
-
-  (use-package consult
-    :bind (:map corfu-map
-           ("M-m" . corfu-move-to-minibuffer)
-           ("C-<tab>" . corfu-move-to-minibuffer))
-    :config
-    (defun corfu-move-to-minibuffer ()
-      (interactive)
-      (pcase completion-in-region--data
-        (`(,beg ,end ,table ,pred ,extras)
-         (let ((completion-extra-properties extras)
-               completion-cycle-threshold completion-cycling)
-           (consult-completion-in-region beg end table pred)))))
-    (add-to-list 'corfu-continue-commands #'corfu-move-to-minibuffer))
-  
-  ;; Corfu in the shell
-  (defun my/corfu-shell-settings ()
-    (setq-local corfu-quit-no-match t
-                corfu-auto nil)
-    (setq-local corfu-map (copy-keymap corfu-map)
-                completion-cycle-threshold nil)
-    (define-key corfu-map "\r" #'corfu-insert-and-send)
-    (corfu-mode))
-  (defun corfu-insert-and-send ()
-    (interactive)
-    ;; 1. First insert the completed candidate
-    (corfu-insert)
-    ;; 2. Send the entire prompt input to the shell
-    (cond
-     ((and (derived-mode-p 'eshell-mode) (fboundp 'eshell-send-input))
-      (eshell-send-input))
-     ((derived-mode-p 'comint-mode)
-      (comint-send-input)))))
-
-
-;;;;;; Corfu Extensions (Cape)
+;;;;;; Completion at point extensions (CAPE)
 ;; Add extensions
 (use-package cape
   :ensure t

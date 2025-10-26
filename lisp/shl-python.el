@@ -12,10 +12,10 @@
 ;;                    :lookup #'consult--lookup-member
 ;;                    :history 'symbol-history))
 
-;; (defun shl/python-symbols ()
-;;   "Query Python symbols for current project."
-;;   (when (executable-find "uv")
-;;     (split-string (shell-command-to-string "uv run --with pydoc_utils python -m pydoc_utils")) "\n" t))
+(defun shl/python-symbols ()
+  "Query Python symbols for current project."
+  (when (executable-find "uv")
+    (split-string (shell-command-to-string "uv run --with pydoc_utils python -m pydoc_utils") "\n" t)))
 
 (defun shl/python-doc (symbol)
   "Get the pydoc documentation for SYMBOL in a compilation buffer."

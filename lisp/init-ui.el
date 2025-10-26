@@ -38,7 +38,6 @@
 (setq custom-safe-themes t)
 
 (use-package doric-themes
-  :disabled t
   :ensure t
   :demand t
   :hook (elpaca-after-init . shl/set-theme)
@@ -53,9 +52,10 @@
   ;; These are the default values.
   (setq doric-themes-to-toggle '(doric-light doric-dark))
   (setq doric-themes-to-rotate doric-themes-collection)
-  (doric-themes-select 'doric-dark))
+  (doric-themes-select 'doric-light))
 
 (use-package zenburn-theme
+  :disabled t
   :ensure t
   :demand t
   :hook (elpaca-after-init . (lambda () (load-theme 'zenburn :no-confirm))))

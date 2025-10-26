@@ -59,13 +59,11 @@
   (fset #'jsonrpc--log-event #'ignore)
   (general-setq-default eglot-events-buffer-size 0)
 
-  (add-to-list 'eglot-server-programs
-               '(python-mode . ("ruff" "server")))
-  (add-to-list 'eglot-server-programs
-               '(python-ts-mode . ("ruff" "server")))
+  ;; (add-to-list 'eglot-server-programs
+  ;;              '(python-mode . ("ruff" "server")))
+  ;; (add-to-list 'eglot-server-programs
+  ;;              '(python-ts-mode . ("ruff" "server")))
   
-  (add-hook 'after-save-hook 'eglot-format)
-
   (general-setq eglot-autoshutdown t
 		eglot-confirm-server-initiated-edits nil
 		eglot-events-buffer-size 0

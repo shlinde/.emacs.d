@@ -207,10 +207,7 @@ the unwritable tidbits."
          ("M-s M-w" . avy-kill-ring-save-region)
          ("M-s t"   . avy-move-line)
          ("M-s M-t" . avy-move-region)
-         ("M-g l"   . avy-goto-end-of-line)
-
-	 :map embark-general-map
-	 ("d" . shl/python-doc)))
+         ("M-g l"   . avy-goto-end-of-line)))
 
 
 (provide 'init-editor)
