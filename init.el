@@ -19,6 +19,8 @@
 ;; (require 'init-evil)
 (require 'init-org)
 (require 'init-ai)
+(require 'init-tools)
+(require 'init-email)
 
 (require 'shl-python)
 
