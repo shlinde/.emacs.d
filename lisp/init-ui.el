@@ -53,14 +53,6 @@
   (setq doric-themes-to-toggle '(doric-light doric-dark))
   (setq doric-themes-to-rotate doric-themes-collection))
 
-
-
-(use-package zenburn-theme
-  :disabled t
-  :ensure t
-  :demand t
-  :hook (elpaca-after-init . (lambda () (load-theme 'zenburn :no-confirm))))
-
 (use-package time
   :ensure nil
   :demand t
