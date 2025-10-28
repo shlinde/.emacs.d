@@ -376,13 +376,6 @@
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
 
-;;;;; Nerd Icons for Corfu
-(use-package nerd-icons-corfu
-  :ensure t
-  :after corfu
-  :config
-  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
-
 ;;;;; Yasnippet
 (defcustom shl-all-snippets-dir (concat shl-etc-dir "all-snippets/") "DIR for all snippet files."
   :group 'shl-emacs)
