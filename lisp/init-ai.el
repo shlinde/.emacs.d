@@ -3,6 +3,26 @@
 
 (require 'init-general)
 
+(use-package macher
+  :ensure (:host github :repo "kmontag/macher")
+  :custom
+  ;; The org UI has structured navigation and nice content folding.
+  (macher-action-buffer-ui 'org)
+
+  :config
+  ;; Adjust buffer positioning to taste.
+  ;; (add-to-list
+  ;;  'display-buffer-alist
+  ;;  '("\\*macher:.*\\*"
+  ;;    (display-buffer-in-side-window)
+  ;;    (side . bottom)))
+  ;; (add-to-list
+  ;;  'display-buffer-alist
+  ;;  '("\\*macher-patch:.*\\*"
+  ;;    (display-buffer-in-side-window)
+  ;;    (side . right)))
+  )
+
 ;;; AI
 (use-package gptel
   :ensure (:url "https://github.com/karthink/gptel") ; For Emacs>=30
@@ -35,7 +55,7 @@
     (file-name-as-directory (expand-file-name shl/gptel-chat-directory)))
 
   (defun shl/gptel-chat-open ()
-    "Open Gptel chats directory in Dirvish with preview auto-enabled."
+    "Open Gptel chats directory in Dired with preview auto-enabled."
     (interactive)
     (let ((dir (shl/gptel--chat-dir)))
       (make-directory dir t)
@@ -50,6 +70,7 @@
       (let ((default-directory dir))
 	(consult-ripgrep dir initial))))
   :config 
+  (macher-install)
   (if (string-equal (system-name) "archlinux")
       (setq gptel-model 'gemini-2.5-pro
 	    gptel-backend (gptel-make-gemini "Gemini"
@@ -58,20 +79,34 @@
     (setq gptel-backend (gptel-make-gh-copilot "Copilot")
 	  gptel-model 'gemini-2.5-pro))
 
-  (setq gptel-default-mode 'org-mode)
+  (setf (alist-get 'org-mode gptel-prompt-prefix-alist) "@user\n")
+  (setf (alist-get 'org-mode gptel-response-prefix-alist) "@assistant\n")
+
+  (setq gptel-default-mode 'org-mode
+	gptel-use-header-line t
+	gptel-org-branching-context t
+	gptel-expert-commands t)
 
   (gptel-make-tool
-   :name "read_buffer"                    ; javascript-style snake_case name
-   :function (lambda (buffer)                  ; the function that will run
-               (unless (buffer-live-p (get-buffer buffer))
-		 (error "error: buffer %s is not live." buffer))
-               (with-current-buffer  buffer
-		 (buffer-substring-no-properties (point-min) (point-max))))
-   :description "return the contents of an emacs buffer"
+   :function (lambda (buffer)
+               (with-temp-message (format "Reading buffer: %s" buffer)
+		 (condition-case err
+                     (if (buffer-live-p (get-buffer buffer))
+			 (with-current-buffer buffer
+                           (buffer-substring-no-properties (point-min) (point-max)))
+                       (format "Error: buffer %s is not live." buffer))
+                   (error (format "Error reading buffer %s: %s" 
+                                  buffer (error-message-string err))))))
+   :name "read_buffer"
+   :description "Return the contents of an Emacs buffer"
    :args (list '(:name "buffer"
-		       :type string            ; :type value must be a symbol
-		       :description "the name of the buffer whose contents are to be retrieved"
-		       :category "emacs")))
+                       :type string
+                       :description "The name of the buffer whose contents are to be retrieved"))
+   :category "emacs"
+   :include t)
+
+
+
 
 
   (setq architect-prompt
@@ -87,59 +122,59 @@
   ;; --- Gptel autosave (robust) -----------------------------------
 
 
-  (defvar shl/gptel-autosave-enabled t)
-  (defvar-local shl/gptel--autosave-initialized nil)
+  ;; (defvar shl/gptel-autosave-enabled t)
+  ;; (defvar-local shl/gptel--autosave-initialized nil)
 
-  (defun shl/gptel--timestamp ()
-    (format-time-string "%Y%m%dT%H%M%S"))
+  ;; (defun shl/gptel--timestamp ()
+  ;;   (format-time-string "%Y%m%dT%H%M%S"))
 
-  (defun shl/gptel--ensure-chat-file ()
-    (unless (or buffer-file-name
-		shl/gptel--autosave-initialized
-		(not (derived-mode-p 'org-mode)))
-      (let* ((dir (file-name-as-directory shl/gptel-chat-directory))
-             (fname (concat (shl/gptel--timestamp) ".org"))
-             (path (expand-file-name fname dir)))
-	(make-directory dir t)
-	(when (= (point-min) (point-max))
-          (insert (format "#+title: Chat %s\n#+created: %s\n\n"
-                          (format-time-string "%F %T")
-                          (format-time-string "%F %T"))))
-	(write-region (point-min) (point-max) path nil 'silent)
-	(set-visited-file-name path t)
-	(set-buffer-modified-p nil)
-	(setq shl/gptel--autosave-initialized t)
-	(message "Gptel transcript -> %s"
-		 (file-relative-name path org-directory)))))
+  ;; (defun shl/gptel--ensure-chat-file ()
+  ;;   (unless (or buffer-file-name
+  ;; 		shl/gptel--autosave-initialized
+  ;; 		(not (derived-mode-p 'org-mode)))
+  ;;     (let* ((dir (file-name-as-directory shl/gptel-chat-directory))
+  ;;            (fname (concat (shl/gptel--timestamp) ".org"))
+  ;;            (path (expand-file-name fname dir)))
+  ;; 	(make-directory dir t)
+  ;; 	(when (= (point-min) (point-max))
+  ;;         (insert (format "#+title: Chat %s\n#+created: %s\n\n"
+  ;;                         (format-time-string "%F %T")
+  ;;                         (format-time-string "%F %T"))))
+  ;; 	(write-region (point-min) (point-max) path nil 'silent)
+  ;; 	(set-visited-file-name path t)
+  ;; 	(set-buffer-modified-p nil)
+  ;; 	(setq shl/gptel--autosave-initialized t)
+  ;; 	(message "Gptel transcript -> %s"
+  ;; 		 (file-relative-name path org-directory)))))
 
-  (defun shl/gptel--maybe-annotate-model ()
-    (when (and (derived-mode-p 'org-mode)
-               (boundp 'gptel-model) gptel-model
-               (save-excursion
-		 (goto-char (point-min))
-		 (not (re-search-forward "^#\\+model:" (line-end-position 5) t))))
-      (save-excursion
-	(goto-char (point-min))
-	(forward-line 1)
-	(insert (format "#+model: %s\n" gptel-model)))))
+  ;; (defun shl/gptel--maybe-annotate-model ()
+  ;;   (when (and (derived-mode-p 'org-mode)
+  ;;              (boundp 'gptel-model) gptel-model
+  ;;              (save-excursion
+  ;; 		 (goto-char (point-min))
+  ;; 		 (not (re-search-forward "^#\\+model:" (line-end-position 5) t))))
+  ;;     (save-excursion
+  ;; 	(goto-char (point-min))
+  ;; 	(forward-line 1)
+  ;; 	(insert (format "#+model: %s\n" gptel-model)))))
 
-  (defun shl/gptel--autosave-after-response (&rest _)
-    (when (and shl/gptel-autosave-enabled
-               (derived-mode-p 'org-mode))
-      (shl/gptel--ensure-chat-file)
-      (shl/gptel--maybe-annotate-model)
-      (when (buffer-modified-p)
-	(save-buffer))))
+  ;; (defun shl/gptel--autosave-after-response (&rest _)
+  ;;   (when (and shl/gptel-autosave-enabled
+  ;;              (derived-mode-p 'org-mode))
+  ;;     (shl/gptel--ensure-chat-file)
+  ;;     (shl/gptel--maybe-annotate-model)
+  ;;     (when (buffer-modified-p)
+  ;; 	(save-buffer))))
 
-  (with-eval-after-load 'gptel
-    ;; Preferred hook (if defined in your version):
-    (when (boundp 'gptel-post-response-hook)
-      (add-hook 'gptel-post-response-hook #'shl/gptel--autosave-after-response))
-    ;; Fallback advice for older internal insertion function:
-    (when (and (not (boundp 'gptel-post-response-hook))
-               (fboundp 'gptel--insert-response))
-      (advice-add 'gptel--insert-response :after #'shl/gptel--autosave-after-response))
-    (add-hook 'gptel-mode-hook #'shl/gptel--ensure-chat-file))
+  ;; (with-eval-after-load 'gptel
+  ;;   ;; Preferred hook (if defined in your version):
+  ;;   (when (boundp 'gptel-post-response-hook)
+  ;;     (add-hook 'gptel-post-response-hook #'shl/gptel--autosave-after-response))
+  ;;   ;; Fallback advice for older internal insertion function:
+  ;;   (when (and (not (boundp 'gptel-post-response-hook))
+  ;;              (fboundp 'gptel--insert-response))
+  ;;     (advice-add 'gptel--insert-response :after #'shl/gptel--autosave-after-response))
+  ;;   (add-hook 'gptel-mode-hook #'shl/gptel--ensure-chat-file))
 
   (defun shl/gptel--maybe-enable ()
     "Enable gptel-mode for Org files under shl/gptel-chat-directory."
@@ -188,12 +223,23 @@
                     (if shl/gptel-autosave-enabled "ON" "OFF"))))
 
 
+(use-package gptel-prompts
+  :ensure (gptel-prompts :host github :repo "jwiegley/gptel-prompts")
+  :after (gptel)
+  :demand t
+  :config
+  (setq gptel-prompts-directory "~/data/org/prompts")
+
+  (gptel-prompts-update)
+  ;; Ensure prompts are updated if prompt files change
+  (gptel-prompts-add-update-watchers))
+
 (use-package mcp
   :ensure t
   :after gptel
-  :hook (elpaca-after-init . (lambda ()
-			       (mcp-hub-connect)
-			       (message "MCP: connected: %s" (mch-hub-list-connections))))
+  ;; :hook (elpaca-after-init . (lambda ()
+  ;; 			       (mcp-hub-connect)
+  ;; 			       (message "MCP: connected: %s" (mch-hub-list-connections))))
   :custom (mcp-hub-servers
            `(("filesystem" . (:command "npx" :args ("-y" "@modelcontextprotocol/server-filesystem" "/home/slinde/data")))
              ("fetch" . (:command "uvx" :args ("mcp-server-fetch")))
@@ -244,6 +290,11 @@
  2. If you use LaTeX notation, enclose math in \( and \), or \[ and \] delimiters.
  </formatting>"
      :tools '("introspection")))
+
+;; (use-package aidermacs
+;;   :ensure t
+;;   :bind (("C-c a" . aidermacs-transient-menu)))
+
 
 (provide 'init-ai)
 ;;; init-ai.el ends here

@@ -338,6 +338,7 @@
 ;;;; In-Buffer Completion
 ;;;;; Corfu
 (bind-key* "C-." #'completion-at-point)
+(setq completion-in-region-function #'consult-completion-in-region)
 
 ;;;;;; Completion at point extensions (CAPE)
 ;; Add extensions
