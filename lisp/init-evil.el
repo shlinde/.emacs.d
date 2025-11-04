@@ -91,27 +91,6 @@
   ("C-/" #'evilnc-comment-or-uncomment-lines)
   ('normal "gc" #'evilnc-comment-operator))
 
-(shl/evil-leader
-  :states 'normal
-  "p p" '(project-switch-project :which-key "switch")
-  "p f" '(project-find-file      :which-key "find file")
-  "p r" '(shl/project-ripgrep    :which-key "ripgrep")
-  "p b" '(shl/project-buffers    :which-key "buffers")
-  "p B" '(shl/project-switch-to-buffer :which-key "consult buffer")
-  "p k" '(shl/project-kill-buffers :which-key "kill bufs")
-  "p d" '(shl/project-open-dirvish :which-key "dirvish root")
-  "p s" '(shl/project-scratch    :which-key "scratch")
-  "p n" '(shl/project-org-note   :which-key "note")
-  "p c" '(shl/project-compilation :which-key "compile")
-  "p S" '(shl/project-shell      :which-key "shell")
-  "p E" '(shl/project-eshell     :which-key "eshell")
-  "p j" '(shl/project-just-target :which-key "just target")
-  "p t" '(shl/project-pytest-file :which-key "pytest")
-  "p l" '(shl/project-pytest-last-failed :which-key "pytest last")
-  "p R" '(shl/project-ruff-check :which-key "ruff")
-  "p N" '(shl/project-drop-note :which-key "quick note")
-  "p o" '(shl/project-chat-browse :which-key "chats"))
-
 (general-with 'fontaine
   (shl/evil-leader
     :states 'normal
@@ -171,6 +150,10 @@
   "n c" '(org-capture :which-key "capture")
   "n a" '(org-agenda :which-key "agenda")
   "n j" '(shl/open-journal :which-key "open journal"))
+
+(shl/evil-leader
+  :states 'normal
+  "t t" '(eshell :which-key "eshell"))
 
 (use-package gptel
   :ensure nil
@@ -242,6 +225,34 @@
   :config
   (require 'evil-org-agenda)
   (evil-org-agenda-set-keys))
+
+;; C-x prefix remappings
+(shl/evil-leader :states 'normal
+  ;; Project commands (C-x p)
+  "p" '(:keymap project-prefix-map :which-key "project")
+  
+  ;; Buffer commands (C-x b and related)
+  "b" '(:keymap ctl-x-4-map :which-key "other-window")
+  "5" '(:keymap ctl-x-5-map :which-key "other-frame")
+  
+  ;; Register commands (C-x r)
+  "r" '(:keymap ctl-x-r-map :which-key "registers/bookmarks")
+  
+  ;; Narrowing commands (C-x n)
+  "n" '(:keymap narrow-map :which-key "narrow")
+  
+  ;; Abbrev commands (C-x a)
+  "a" '(:keymap abbrev-map :which-key "abbrev")
+  
+  ;; Tab commands (C-x t)
+  "t" '(:keymap tab-prefix-map :which-key "tabs")
+  
+  ;; Window commands (C-x w)
+  "w" '(:keymap window-prefix-map :which-key "window")
+  
+  ;; VC commands (C-x v)
+  "v" '(:keymap vc-prefix-map :which-key "version-control"))
+
 
 (provide 'init-evil)
 ;;; init-evil.el ends here

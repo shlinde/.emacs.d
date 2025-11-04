@@ -16,7 +16,7 @@
 (require 'init-treesitter)
 (require 'init-lsp)
 (require 'init-prog)
-;; (require 'init-evil)
+(require 'init-evil)
 (require 'init-org)
 (require 'init-ai)
 (require 'init-tools)

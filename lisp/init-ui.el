@@ -40,7 +40,7 @@
 (use-package doric-themes
   :ensure t
   :demand t
-  :hook (elpaca-after-init . shl/set-theme)
+  ;; :hook (elpaca-after-init . shl/set-theme)
   :init
   (defun shl/set-theme ()
     "Check if the current time is past 19:00 and run a function accordingly."
@@ -52,6 +52,10 @@
   ;; These are the default values.
   (setq doric-themes-to-toggle '(doric-light doric-dark))
   (setq doric-themes-to-rotate doric-themes-collection))
+
+(use-package zenburn-theme
+  :ensure t
+  :config (load-theme 'zenburn :no-confirm))
 
 (use-package time
   :ensure nil

@@ -23,7 +23,6 @@
                ("terminfo/65" "terminfo/65/*")
                ("integration" "integration/*")
                (:exclude ".dir-locals.el" "*-tests.el")))
-  :general (shl/leader "tt" '(eat :which-key "terminal"))
   :config
   (setq eat-kill-buffer-on-exit t
         eat-enable-yank-to-terminal t
@@ -33,6 +32,36 @@
         eat-term-scrollback-size nil)
   ;; For `eat-eshell-mode' -- integration with eshell.
   (add-hook 'eshell-load-hook #'eat-eshell-mode))
+
+(use-package eshell
+  :ensure nil  ; Built-in to Emacs
+  :commands (eshell)
+  :general (shl/leader "e" '(eshell :which-key "terminal"))
+  :hook (eshell-mode . (lambda () (setenv "TERM" "xterm-256color")))
+  :config
+  ;; Basic Eshell settings can go here
+  (setq eshell-buffer-shorthand t) ; Show shortened buffer names
+  ;; Define aliases directly in your init file.
+  (defun eshell/ll (&rest args)
+    "Long listing, with colors."
+    (eshell/ls "-AFGhl" "--color=always" args))
+
+  (defun eshell/ff (file)
+    "Open FILE with `find-file'."
+    (find-file file))
+
+  (defun eshell/e (file)
+    "Open FILE with `find-file-other-window'."
+    (find-file-other-window file))
+
+  (defun eshell/gd ()
+    "Run `magit-diff-unstaged'."
+    (magit-diff-unstaged))
+
+  (defun eshell/clear ()
+    "Clear the Eshell buffer."
+    (let ((inhibit-read-only t))
+      (erase-buffer))))
 
 (provide 'init-term)
 ;;; init-term.el ends here
